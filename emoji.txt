@@ -1,0 +1,240 @@
+==================================================================
+          MEDIMIND AI — COMPLETE PROJECT EMOJI AUDIT REPORT
+==================================================================
+Total Unique Emojis Used        : 55
+Total Emoji Occurrences In Code : 92
+Total Code & Config Files Scanned : 152
+==================================================================
+
+SUMMARY LIST OF ALL UNIQUE EMOJIS:
+🔬 💊 📊 🟢 🌐 🤖 🚨 🩺 ⚠️ 🧠 ✨ 🛡️ 🔄 👨‍⚕️ 🗺️ 🧬 🔴 📥 🏛️ 🇮🇳 📍 🧘 📄 ✓ 🎯 ⚡ 📷 🔒 🟡 🧪 💻 🏃 🏥 ✅ ★ ⏱️ 📏 🫀 🩸 🎗️ 🫁 🫘 🦠 🦴 👁️ 🐍 📋 📈 🛰️ 🔍 ➕ 📦 🚚 🛏️ ✕
+
+------------------------------------------------------------------
+DETAILED BREAKDOWN BY EMOJI (Ranked by Frequency of Use):
+------------------------------------------------------------------
+ 1. [🔬] (U+1F52C) : Used 6 time(s)
+    Name        : MICROSCOPE
+    Source Files: app.py:1167, app.py:1191, app.py:1192, app.py:1193 and 2 more places...
+    change: https://cdn-icons-png.flaticon.com/512/18310/18310946.png
+ 2. [💊] (U+1F48A) : Used 6 time(s)
+    Name        : PILL
+    Source Files: app.py:2789, README.md:17, README.md:48, ai\utils\report_generator.py:51 and 2 more places...
+    change:    https://cdn-icons-png.flaticon.com/512/5228/5228598.png 
+ 3. [📊] (U+1F4CA) : Used 5 time(s)
+    Name        : BAR CHART
+    Source Files: app.py:2725, README.md:16, README.md:43, components\command_center_view.py:77 and 1 more places...
+    change:    https://cdn-icons-png.flaticon.com/512/404/404621.png 
+ 4. [🟢] (U+1F7E2) : Used 5 time(s)
+    Name        : LARGE GREEN CIRCLE
+    Source Files: README.md:50, components\command_center_view.py:138, components\command_center_view.py:190, components\command_center_view.py:327 and 1 more places...
+    change:   https://cdn-icons-png.flaticon.com/128/4381/4381635.png
+ 5. [🌐] (U+1F310) : Used 4 time(s)
+    Name        : GLOBE WITH MERIDIANS
+    Source Files: app.py:2465, app.py:2528, app.py:2591, app.py:2838
+    change:    https://cdn-icons-png.flaticon.com/128/486/486505.png
+ 6. [🤖] (U+1F916) : Used 4 time(s)
+    Name        : ROBOT FACE
+    Source Files: README.md:18, README.md:52, components\command_center_view.py:84, components\command_center_view.py:117
+    change:    https://cdn-icons-png.flaticon.com/128/12512/12512364.png
+ 7. [🚨] (U+1F6A8) : Used 4 time(s)
+    Name        : POLICE CARS REVOLVING LIGHT
+    Source Files: README.md:19, README.md:56, components\command_center_view.py:118, components\command_center_view.py:323
+    change:https://cdn-icons-png.flaticon.com/128/14658/14658441.png
+ 8. [🩺] (U+1FA7A) : Used 3 time(s)
+    Name        : STETHOSCOPE
+    Source Files: app.py:1178, README.md:16, ai\utils\report_generator.py:51
+    change: https://cdn-icons-png.flaticon.com/128/6018/6018699.png
+ 9. [⚠️] (U+26A0 U+FE0F) : Used 3 time(s)
+    Name        : WARNING SIGN
+    Source Files: app.py:1183, ai\utils\report_generator.py:51, components\command_center_view.py:404
+    change: https://cdn-icons-png.flaticon.com/128/6939/6939131.png
+10. [🧠] (U+1F9E0) : Used 3 time(s)
+    Name        : BRAIN
+    Source Files: app.py:2464, app.py:2527, app.py:2590
+    change:    https://cdn-icons-png.flaticon.com/512/3286/3286097.png 
+11. [✨] (U+2728) : Used 3 time(s)
+    Name        : SPARKLES
+    Source Files: app.py:2466, app.py:2529, app.py:2592
+    change:     https://cdn-icons-png.flaticon.com/512/16755/16755294.png 
+12. [🛡️] (U+1F6E1 U+FE0F) : Used 3 time(s)
+    Name        : SHIELD
+    Source Files: app.py:2842, README.md:28, components\command_center_view.py:58
+    change: https://cdn-icons-png.flaticon.com/512/595/595764.png
+13. [🔄] (U+1F504) : Used 3 time(s)
+    Name        : ANTICLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS
+    Source Files: README.md:20, README.md:60, components\command_center_view.py:119
+    change:    https://cdn-icons-png.flaticon.com/512/17514/17514906.png 
+14. [👨‍⚕️] (U+1F468 U+200D U+2695 U+FE0F) : Used 3 time(s)
+    Name        : MAN + STAFF OF AESCULAPIUS
+    Source Files: README.md:21, README.md:64, components\command_center_view.py:120
+    change: https://cdn-icons-png.flaticon.com/512/387/387561.png
+15. [🗺️] (U+1F5FA U+FE0F) : Used 3 time(s)
+    Name        : WORLD MAP
+    Source Files: README.md:22, README.md:68, components\command_center_view.py:121
+    change: https://cdn-icons-png.flaticon.com/128/486/486505.png
+16. [🧬] (U+1F9EC) : Used 3 time(s)
+    Name        : DNA DOUBLE HELIX
+    Source Files: README.md:23, README.md:71, components\command_center_view.py:122
+    change:https://cdn-icons-png.flaticon.com/512/16951/16951293.png
+17. [🔴] (U+1F534) : Used 3 time(s)
+    Name        : LARGE RED CIRCLE
+    Source Files: README.md:50, components\command_center_view.py:334, components\command_center_view.py:465
+    change:https://cdn-icons-png.flaticon.com/512/594/594739.png
+18. [📥] (U+1F4E5) : Used 2 time(s)
+    Name        : INBOX TRAY
+    Source Files: app.py:1460, app.py:1468
+    change:https://cdn-icons-png.flaticon.com/512/7913/7913563.png
+19. [🏛️] (U+1F3DB U+FE0F) : Used 2 time(s)
+    Name        : CLASSICAL BUILDING
+    Source Files: app.py:2781, README.md:8
+    change: https://cdn-icons-png.flaticon.com/512/4320/4320371.png
+20. [🇮🇳] (U+1F1EE U+1F1F3) : Used 2 time(s)
+    Name        : REGIONAL INDICATOR SYMBOL LETTER I + REGIONAL INDICATOR SYMBOL LETTER N
+    Source Files: app.py:2797, components\command_center_view.py:41
+    change:   https://cdn-icons-png.flaticon.com/512/2465/2465596.png 
+21. [📍] (U+1F4CD) : Used 2 time(s)
+    Name        : ROUND PUSHPIN
+    Source Files: app.py:2813, README.md:18
+    change: https://cdn-icons-png.flaticon.com/512/4060/4060488.png
+22. [🧘] (U+1F9D8) : Used 2 time(s)
+    Name        : PERSON IN LOTUS POSITION
+    Source Files: app.py:2821, ai\utils\report_generator.py:51
+    change:https://cdn-icons-png.flaticon.com/512/6266/6266132.png
+23. [📄] (U+1F4C4) : Used 2 time(s)
+    Name        : PAGE FACING UP
+    Source Files: app.py:2850, README.md:17
+    change:https://cdn-icons-png.flaticon.com/512/12370/12370940.png
+24. [✓] (U+2713) : Used 1 time(s)
+    Name        : CHECK MARK
+    Source Files: app.py:813
+    change:    https://cdn-icons-png.flaticon.com/512/10308/10308323.png 
+
+25. [🎯] (U+1F3AF) : Used 1 time(s)
+    Name        : DIRECT HIT
+    Source Files: app.py:2688
+    change:   https://cdn-icons-png.flaticon.com/512/18357/18357328.png 
+26. [⚡] (U+26A1) : Used 1 time(s)
+    Name        : HIGH VOLTAGE SIGN
+    Source Files: app.py:2737
+    change:src="   https://cdn-icons-png.flaticon.com/512/15176/15176610.png "
+27. [📷] (U+1F4F7) : Used 1 time(s)
+    Name        : CAMERA
+    Source Files: app.py:2749
+    change:https://cdn-icons-png.flaticon.com/512/6024/6024205.png
+28. [🔒] (U+1F512) : Used 1 time(s)
+    Name        : LOCK
+    Source Files: app.py:2846
+    change:https://cdn-icons-png.flaticon.com/512/4503/4503969.png
+
+31. [🟡] (U+1F7E1) : Used 1 time(s)
+    Name        : LARGE YELLOW CIRCLE
+    Source Files: README.md:50
+    change:    https://cdn-icons-png.flaticon.com/512/12087/12087823.png 
+32. [🧪] (U+1F9EA) : Used 1 time(s)
+    Name        : TEST TUBE
+    Source Files: README.md:76
+    change:    https://cdn-icons-png.flaticon.com/512/3127/3127109.png 
+33. [💻] (U+1F4BB) : Used 1 time(s)
+    Name        : PERSONAL COMPUTER
+    Source Files: README.md:122
+    change:https://cdn-icons-png.flaticon.com/512/13530/13530296.png
+34. [🏃] (U+1F3C3) : Used 1 time(s)
+    Name        : RUNNER
+    Source Files: ai\utils\report_generator.py:51
+    change: https://cdn-icons-png.flaticon.com/512/3722/3722581.png
+35. [🏥] (U+1F3E5) : Used 1 time(s)
+    Name        : HOSPITAL
+    Source Files: components\command_center_view.py:70
+    change:https://cdn-icons-png.flaticon.com/512/2309/2309962.png
+36. [✅] (U+2705) : Used 1 time(s)
+    Name        : WHITE HEAVY CHECK MARK
+    Source Files: components\command_center_view.py:425
+    change:    https://cdn-icons-png.flaticon.com/512/10308/10308323.png 
+37. [★] (U+2605) : Used 1 time(s)
+    Name        : BLACK STAR
+    Source Files: components\google_map.py:324
+    change: https://cdn-icons-png.flaticon.com/128/12704/12704854.png
+38. [⏱️] (U+23F1 U+FE0F) : Used 1 time(s)
+    Name        : STOPWATCH
+    Source Files: components\google_map.py:385
+    change: https://cdn-icons-png.flaticon.com/512/7184/7184907.png
+39. [📏] (U+1F4CF) : Used 1 time(s)
+    Name        : STRAIGHT RULER
+    Source Files: components\google_map.py:385
+    change: src="https://cdn-icons-png.flaticon.com/128/11692/11692647.png"
+    
+40. [🫀] (U+1FAC0) : Used 6 time(s)
+    Name        : ANATOMICAL HEART
+    Source Files: app.py:2724, app.py:2728, app.py:2823, app.py:2827 and 2 more places...
+    change:    https://cdn-icons-png.flaticon.com/512/508/508735.png 
+41. [🩸] (U+1FA78) : Used 6 time(s)
+    Name        : DROP OF BLOOD
+    Source Files: app.py:2725, app.py:2731, app.py:2824, app.py:2830 and 2 more places...
+    change:    https://cdn-icons-png.flaticon.com/512/10784/10784622.png 
+42. [🎗️] (U+1F397 U+FE0F) : Used 3 time(s)
+    Name        : REMINDER RIBBON
+    Source Files: app.py:2723, app.py:2822, app.py:2921
+    change:    https://cdn-icons-png.flaticon.com/512/3888/3888124.png 
+43. [🫁] (U+1FAC1) : Used 3 time(s)
+    Name        : LUNGS
+    Source Files: app.py:2726, app.py:2825, app.py:2924
+    change:    https://cdn-icons-png.flaticon.com/512/10154/10154217.png 
+44. [🫘] (U+1FAD8) : Used 3 time(s)
+    Name        : BEANS
+    Source Files: app.py:2727, app.py:2826, app.py:2925
+    change:    https://cdn-icons-png.flaticon.com/512/15625/15625461.png 
+45. [🦠] (U+1F9A0) : Used 3 time(s)
+    Name        : MICROBE
+    Source Files: app.py:2730, app.py:2829, app.py:2928
+    change: https://cdn-icons-png.flaticon.com/128/13286/13286061.png
+46. [🦴] (U+1F9B4) : Used 3 time(s)
+    Name        : BONE
+    Source Files: app.py:2732, app.py:2831, app.py:2930
+    change: https://cdn-icons-png.flaticon.com/512/9418/9418433.png
+47. [👁️] (U+1F441 U+FE0F) : Used 3 time(s)
+    Name        : EYE
+    Source Files: app.py:2733, app.py:2832, app.py:2931
+    change:    https://cdn-icons-png.flaticon.com/512/8256/8256189.png 
+48. [🐍] (U+1F40D) : Used 3 time(s)
+    Name        : SNAKE
+    Source Files: app.py:2734, app.py:2833, app.py:2932
+    change:    https://cdn-icons-png.flaticon.com/512/15305/15305545.png 
+49. [📋] (U+1F4CB) : Used 2 time(s)
+    Name        : CLIPBOARD
+    Source Files: components\command_center_view.py:76, components\command_center_view.py:387
+    change: https://cdn-icons-png.flaticon.com/512/7062/7062467.png
+50. [📈] (U+1F4C8) : Used 2 time(s)
+    Name        : CHART WITH UPWARDS TREND
+    Source Files: components\command_center_view.py:90, components\command_center_view.py:219
+    change: https://cdn-icons-png.flaticon.com/512/8629/8629220.png
+51. [🛰️] (U+1F6F0 U+FE0F) : Used 2 time(s)
+    Name        : SATELLITE
+    Source Files: components\command_center_view.py:317, components\command_center_view.py:449
+    change: https://cdn-icons-png.flaticon.com/512/2888/2888685.png
+52. [🔍] (U+1F50D) : Used 1 time(s)
+    Name        : LEFT-POINTING MAGNIFYING GLASS
+    Source Files: app.py:930
+    change: https://cdn-icons-png.flaticon.com/512/2851/2851460.png
+53. [➕] (U+2795) : Used 1 time(s)
+    Name        : HEAVY PLUS SIGN
+    Source Files: app.py:975
+    change: https://cdn-icons-png.flaticon.com/512/14779/14779089.png
+54. [📦] (U+1F4E6) : Used 1 time(s)
+    Name        : PACKAGE
+    Source Files: components\command_center_view.py:182
+    change: https://cdn-icons-png.flaticon.com/512/3101/3101103.png
+55. [🚚] (U+1F69A) : Used 1 time(s)
+    Name        : DELIVERY TRUCK
+    Source Files: components\command_center_view.py:371
+    change: https://cdn-icons-png.flaticon.com/512/2554/2554978.png
+56. [🛏️] (U+1F6CF U+FE0F) : Used 1 time(s)
+    Name        : BED
+    Source Files: components\command_center_view.py:399
+    change: https://cdn-icons-png.flaticon.com/512/3470/3470248.png
+57. [✕] (U+2715) : Used 1 time(s)
+    Name        : MULTIPLICATION X
+    Source Files: components\google_map.py:224
+    change: https://cdn-icons-png.flaticon.com/512/17385/17385760.png
+==================================================================
+END OF EMOJI AUDIT REPORT
+==================================================================
