@@ -271,7 +271,10 @@ def render_command_center_dashboard(lang_code: str = "en", is_dark: bool = False
                     return "background-color: rgba(245, 158, 11, 0.2); color: #F59E0B; font-weight: bold;"
                 return "background-color: rgba(16, 185, 129, 0.15); color: #10B981;"
 
-            st.dataframe(inv_df.style.applymap(highlight_risk, subset=["Risk Status"]), use_container_width=True)
+            if hasattr(inv_df.style, "map"):
+                st.dataframe(inv_df.style.map(highlight_risk, subset=["Risk Status"]), use_container_width=True)
+            else:
+                st.dataframe(inv_df.style.applymap(highlight_risk, subset=["Risk Status"]), use_container_width=True)
 
     # ==========================================
     # TAB 3: AI DEMAND FORECAST
