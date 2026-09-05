@@ -14,7 +14,10 @@ import sys
 WORKSPACE_ROOT = os.path.dirname(os.path.abspath(__file__))
 if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
+
+
 import markdown
+
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -89,6 +92,38 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Hide Streamlit Community Cloud header (Fork, GitHub, menu) and footer/manage badges
+hide_streamlit_style = """
+<style>
+/* Top-right header (Fork, GitHub, menu buttons) hide karne ke liye */
+header[data-testid="stHeader"],
+.stAppHeader,
+[data-testid="stToolbar"],
+#MainMenu {
+    visibility: hidden !important;
+    height: 0% !important;
+    display: none !important;
+}
+
+/* Bottom-right badges (App status, Manage app, watermark) hide karne ke liye */
+footer {
+    visibility: hidden !important;
+    display: none !important;
+}
+
+[data-testid="stStatusWidget"],
+.viewerBadge_container__r5tak,
+.viewerBadge_link__qRIco,
+div[class*="viewerBadge"],
+div[class*="manageApp"],
+[data-testid="stDecoration"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # Read query parameters to sync dark mode state if requested
 qp_theme = st.query_params.get("theme", None)
