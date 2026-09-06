@@ -52,8 +52,12 @@ from ai.utils.care_recommendations import (
     get_youtube_search_url
 )
 from ai.medicine_ai.medicine_details import get_medicine_details
-from ai.chatbot.deep_explainer import generate_deep_explanation, answer_assessment_question
 from api.openfda import search_drug_openfda
+from ai.chatbot.deep_explainer import (
+    generate_deep_explanation,
+    answer_assessment_question,
+    generate_medical_report_comprehensive_breakdown
+)
 from api.dailymed import search_dailymed_spls, search_dailymed_drugnames
 from api.bioportal import search_bioportal_concept, annotate_clinical_text
 from api.nlm_clinical import search_nlm_conditions
@@ -2154,6 +2158,41 @@ elif st.session_state["active_panel"] == "Medical Report":
                 """, unsafe_allow_html=True)
             else:
                 st.success(f"Identified {presc_res['total_medicines_identified']} medications in prescription.")
+
+                # Automatic Clinical AI Patient Guide for Prescriptions
+                rx_cache_key = f"p2_breakdown_{doc_name}_{lang_code}"
+                if rx_cache_key not in st.session_state:
+                    with st.spinner("Generating Comprehensive Clinical AI Guide & Medication Safety Plan..."):
+                        rx_breakdown = generate_medical_report_comprehensive_breakdown(
+                            report_type="Doctor Prescription",
+                            doc_text=doc_text_stream,
+                            findings=presc_res.get("medicines", []),
+                            age_group=age_for_report,
+                            gender=gender_for_report,
+                            lang=lang_code
+                        )
+                        st.session_state[rx_cache_key] = rx_breakdown
+                else:
+                    rx_breakdown = st.session_state[rx_cache_key]
+
+                if rx_breakdown:
+                    st.markdown(f"""
+                    <div class="mm-card" style="border-left: 4px solid #2563EB; background: rgba(37, 99, 235, 0.04); padding: 20px; margin: 16px 0 16px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(37, 99, 235, 0.15); padding-bottom: 8px;">
+                            <div>
+                                <b style="font-size: 1.05rem; color: var(--mm-text-primary);">Comprehensive Clinical AI Prescription Guide & Medication Plan</b>
+                                <div style="font-size: 0.80rem; color: var(--mm-text-secondary); margin-top: 2px;">
+                                    Automated Drug Purpose • Dosage Timing • Food Interactions • Precautions
+                                </div>
+                            </div>
+                            <span class="mm-badge mm-badge-brand">AI Analysis</span>
+                        </div>
+                        <div style="font-size: 0.92rem; line-height: 1.6; color: var(--mm-text-primary);">
+                    """, unsafe_allow_html=True)
+                    st.markdown(rx_breakdown)
+                    st.markdown("</div></div>", unsafe_allow_html=True)
+
+                st.markdown("<div class='mm-section-header' style='font-size: 1.05rem; font-weight: 700; color: var(--mm-text-primary); margin: 16px 0 8px 0;'>Prescription Medication Breakdown</div>", unsafe_allow_html=True)
                 for m in presc_res["medicines"]:
                     with st.expander(f"{m['extracted_name']} — {m['frequency']} ({m['timing']})", expanded=True):
                         info = m.get("info", {})
@@ -2195,6 +2234,39 @@ elif st.session_state["active_panel"] == "Medical Report":
                 with r_col2:
                     sev_status = rad_res.get("overall_severity", "Normal")
                     st.metric("Overall Radiological Status", sev_status)
+
+                # Automatic Clinical AI Patient Guide for Radiology Reports
+                rad_cache_key = f"p2_breakdown_{doc_name}_{lang_code}"
+                if rad_cache_key not in st.session_state:
+                    with st.spinner("Generating Comprehensive Clinical AI Radiology Interpretation..."):
+                        rad_breakdown = generate_medical_report_comprehensive_breakdown(
+                            report_type="Diagnostic Imaging / Radiology Report",
+                            doc_text=doc_text_stream,
+                            findings=rad_res.get("findings", []),
+                            age_group=age_for_report,
+                            gender=gender_for_report,
+                            lang=lang_code
+                        )
+                        st.session_state[rad_cache_key] = rad_breakdown
+                else:
+                    rad_breakdown = st.session_state[rad_cache_key]
+
+                if rad_breakdown:
+                    st.markdown(f"""
+                    <div class="mm-card" style="border-left: 4px solid #2563EB; background: rgba(37, 99, 235, 0.04); padding: 20px; margin: 16px 0 16px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(37, 99, 235, 0.15); padding-bottom: 8px;">
+                            <div>
+                                <b style="font-size: 1.05rem; color: var(--mm-text-primary);">Comprehensive Clinical AI Radiology Interpretation & Guide</b>
+                                <div style="font-size: 0.80rem; color: var(--mm-text-secondary); margin-top: 2px;">
+                                    Plain-Language Scan Meaning • Anatomical Observations • Severity • Next Steps
+                                </div>
+                            </div>
+                            <span class="mm-badge mm-badge-brand">AI Analysis</span>
+                        </div>
+                        <div style="font-size: 0.92rem; line-height: 1.6; color: var(--mm-text-primary);">
+                    """, unsafe_allow_html=True)
+                    st.markdown(rad_breakdown)
+                    st.markdown("</div></div>", unsafe_allow_html=True)
 
                 st.markdown("<div class='mm-section-header'style='font-size: 1.05rem; font-weight: 700; color: var(--mm-text-primary); margin: 16px 0 8px 0;'>Radiological Findings & Clinical Impressions</div>", unsafe_allow_html=True)
                 for item in rad_res.get("findings", []):
@@ -2251,6 +2323,39 @@ elif st.session_state["active_panel"] == "Medical Report":
                     status_overall = "Needs Attention" if lab_res.get("abnormal_count", 0) > 0 else "All Normal"
                     st.metric("Overall Clinical Status", status_overall)
 
+                # Automatic Clinical AI Patient Guide for Blood / Pathology Lab Reports
+                lab_cache_key = f"p2_breakdown_{doc_name}_{lang_code}"
+                if lab_cache_key not in st.session_state:
+                    with st.spinner("Generating Comprehensive Clinical AI Patient Guide & Recovery Plan..."):
+                        lab_breakdown = generate_medical_report_comprehensive_breakdown(
+                            report_type="Blood / Pathology Lab Report",
+                            doc_text=doc_text_stream,
+                            findings=lab_res.get("findings", []),
+                            age_group=age_for_report,
+                            gender=gender_for_report,
+                            lang=lang_code
+                        )
+                        st.session_state[lab_cache_key] = lab_breakdown
+                else:
+                    lab_breakdown = st.session_state[lab_cache_key]
+
+                if lab_breakdown:
+                    st.markdown(f"""
+                    <div class="mm-card" style="border-left: 4px solid #2563EB; background: rgba(37, 99, 235, 0.04); padding: 20px; margin: 16px 0 16px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(37, 99, 235, 0.15); padding-bottom: 8px;">
+                            <div>
+                                <b style="font-size: 1.05rem; color: var(--mm-text-primary);">Comprehensive Clinical AI Patient Guide & Recovery Plan</b>
+                                <div style="font-size: 0.80rem; color: var(--mm-text-secondary); margin-top: 2px;">
+                                    Automated Plain-Language Interpretation • Organ Health • Dietary Recovery • Safety Precautions
+                                </div>
+                            </div>
+                            <span class="mm-badge mm-badge-brand">AI Analysis</span>
+                        </div>
+                        <div style="font-size: 0.92rem; line-height: 1.6; color: var(--mm-text-primary);">
+                    """, unsafe_allow_html=True)
+                    st.markdown(lab_breakdown)
+                    st.markdown("</div></div>", unsafe_allow_html=True)
+
                 st.markdown("<div class='mm-section-header'style='font-size: 1.05rem; font-weight: 700; color: var(--mm-text-primary); margin: 16px 0 8px 0;'>Detailed Parameter Breakdown</div>", unsafe_allow_html=True)
                 for item in lab_res.get("findings", []):
                     status = item.get("status", "Normal")
@@ -2299,6 +2404,9 @@ elif st.session_state["active_panel"] == "Medical Report":
                 st.session_state["p2_cached_doc_text"] = ""
                 st.session_state["p2_deep_ai_chat"] = []
                 st.session_state["p2_doc_text_stream"] = ""
+                keys_to_clear = [k for k in list(st.session_state.keys()) if k.startswith("p2_breakdown_")]
+                for k in keys_to_clear:
+                    st.session_state.pop(k, None)
                 st.rerun()
 
     # Footer
