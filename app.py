@@ -646,7 +646,7 @@ with st.sidebar:
     for k in panel_keys:
         if k in st.session_state.get("active_panel", ""):
             current_key = k
-            break
+    print(f"[DEBUG NAV START] active_panel: {st.session_state.get('active_panel')}, current_key: {current_key}, index: {panel_keys.index(current_key)}")
 
     selected_nav_key = st.radio(
         "Clinical Module Navigation",
@@ -655,6 +655,7 @@ with st.sidebar:
         index=panel_keys.index(current_key),
         label_visibility="collapsed"
     )
+    print(f"[DEBUG NAV END] selected_nav_key: {selected_nav_key}")
     st.session_state["active_panel"] = selected_nav_key
 
     # 5. Safety & Privacy Card (Unified 12px Radius, Dark Mode Parity, No Emojis)
@@ -2503,7 +2504,6 @@ elif st.session_state["active_panel"] == "Nearby Healthcare":
                     } catch(e) {}
                     return;
                 }
-
                 navigator.geolocation.getCurrentPosition(
                     function(pos) {
                         try {
