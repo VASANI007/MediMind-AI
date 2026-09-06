@@ -129,7 +129,9 @@ def get_medicine_gallery(medicine_entries: list, max_items: int = 8) -> list:
             except Exception:
                 pass
 
-        image_path, is_fallback = resolve_image("medicine", candidate or display_name)
+        # Pass full name and brand to resolve real packaging photo
+        search_query = f"{display_name} {candidate}".strip()
+        image_path, is_fallback = resolve_image("medicine", search_query)
 
         gallery.append({
             "name": display_name,
@@ -240,11 +242,16 @@ CRITICAL CLINICAL INSTRUCTIONS:
    - "text": Full clinical explanation and step-by-step instructions in {lang_instruction}.
 
 6. ILLNESS-SPECIFIC DIETARY & HYDRATION GUIDELINES:
-   - Provide 3 to 5 highly specific nutrition, food dos/don'ts, and hydration instructions customized STRICTLY for {top_condition} and the patient's symptoms in {lang_instruction}.
-   - MUST NOT be generic fever advice if the condition is not a fever.
+   - "foods_to_eat": 3 to 4 specific healthy foods/items to consume in {lang_instruction}.
+   - "foods_to_avoid": 3 to 4 specific foods or habits to strictly avoid or limit in {lang_instruction}.
+   - "hydration_advice": Specific fluid intake instructions in {lang_instruction}.
 
-7. ILLNESS-SPECIFIC EMERGENCY RED FLAGS:
-   - Provide 3 to 5 critical danger warning signs strictly customized for {top_condition} in {lang_instruction} that require emergency hospital visit.
+7. CLINICAL CARE DOS AND DON'TS:
+   - "dos": 3 to 4 essential care actions the patient MUST do in {lang_instruction}.
+   - "donts": 3 to 4 harmful or dangerous actions the patient MUST NOT do in {lang_instruction}.
+
+8. ILLNESS-SPECIFIC EMERGENCY RED FLAGS:
+   - "red_flags": 3 to 4 critical danger warning signs strictly customized for {top_condition} in {lang_instruction} that require emergency hospital visit.
 
 OUTPUT FORMAT:
 Return strictly a valid JSON object with NO preamble or conversational text matching this exact schema:
@@ -276,8 +283,18 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
     "title": "...",
     "text": "..."
   }},
-  "dietary_guidelines": [
-    "Condition-specific tip 1...", "Condition-specific tip 2...", "Condition-specific tip 3..."
+  "foods_to_eat": [
+    "Recommended food 1...", "Recommended food 2...", "Recommended food 3..."
+  ],
+  "foods_to_avoid": [
+    "Food to avoid 1...", "Food to avoid 2...", "Food to avoid 3..."
+  ],
+  "hydration_advice": "Hydration advice text...",
+  "dos": [
+    "Clinical Do 1...", "Clinical Do 2...", "Clinical Do 3..."
+  ],
+  "donts": [
+    "Clinical Don't 1...", "Clinical Don't 2...", "Clinical Don't 3..."
   ],
   "red_flags": [
     "Condition-specific red flag 1...", "Condition-specific red flag 2...", "Condition-specific red flag 3..."
@@ -286,9 +303,33 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
     ai_data = None
     api_source_name = "MediMind AI Verified Care"
 
-    # 1. Try Groq API (Ultra-Fast Live Engine)
-    if GROQ_API_KEY:
-        for groq_model in ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b", "llama-3.3-70b-versatile"]:
+    # 1. Try Gemini API (Primary High-Precision Multilingual Live Engine)
+    if GEMINI_API_KEY:
+        for gemini_model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={GEMINI_API_KEY}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2048, "responseMimeType": "application/json"}
+                }
+                headers = {"Content-Type": "application/json"}
+                res = requests.post(url, headers=headers, json=payload, timeout=10)
+                if res.status_code == 200:
+                    data = res.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        text_out = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        parsed = _clean_json_response(text_out)
+                        if parsed and parsed.get("medicines"):
+                            ai_data = parsed
+                            api_source_name = "MediMind AI Verified Care"
+                            break
+            except Exception as e:
+                print(f"Gemini {gemini_model} recommendations notice: {e}")
+
+    # 2. Try Groq API (Secondary Live Engine)
+    if not ai_data and GROQ_API_KEY:
+        for groq_model in ["qwen/qwen3.6-27b", "llama-3.3-70b-versatile", "openai/gpt-oss-120b", "openai/gpt-oss-20b"]:
             try:
                 headers = {
                     "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -304,7 +345,7 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
                     "max_tokens": 1800,
                     "response_format": {"type": "json_object"}
                 }
-                res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=body, timeout=6)
+                res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=body, timeout=8)
                 if res.status_code == 200:
                     text_out = res.json()["choices"][0]["message"]["content"]
                     parsed = _clean_json_response(text_out)
@@ -314,30 +355,6 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
                         break
             except Exception as e:
                 print(f"Groq {groq_model} recommendations notice: {e}")
-
-    # 2. Try Gemini API (Secondary Live Engine)
-    if not ai_data and GEMINI_API_KEY:
-        for gemini_model in ["gemini-2.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={GEMINI_API_KEY}"
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2048, "responseMimeType": "application/json"}
-                }
-                headers = {"Content-Type": "application/json"}
-                res = requests.post(url, headers=headers, json=payload, timeout=6)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        text_out = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                        parsed = _clean_json_response(text_out)
-                        if parsed and parsed.get("medicines"):
-                            ai_data = parsed
-                            api_source_name = "MediMind AI Verified Care"
-                            break
-            except Exception as e:
-                print(f"Gemini {gemini_model} recommendations notice: {e}")
 
     # Process AI Data if successfully fetched from Live APIs
     if ai_data and ai_data.get("medicines"):
@@ -405,6 +422,24 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
                     "youtube_url": youtube_url
                 })
 
+        foods_to_eat = ai_data.get("foods_to_eat") or []
+        if isinstance(foods_to_eat, str):
+            foods_to_eat = [x.strip() for x in foods_to_eat.split("\n") if x.strip()]
+        
+        foods_to_avoid = ai_data.get("foods_to_avoid") or []
+        if isinstance(foods_to_avoid, str):
+            foods_to_avoid = [x.strip() for x in foods_to_avoid.split("\n") if x.strip()]
+        
+        hyd_advice = ai_data.get("hydration_advice") or "Drink 2.5 - 3 liters of water / fluids daily."
+        
+        clinical_dos = ai_data.get("dos") or ai_data.get("clinical_dos") or []
+        if isinstance(clinical_dos, str):
+            clinical_dos = [x.strip() for x in clinical_dos.split("\n") if x.strip()]
+        
+        clinical_donts = ai_data.get("donts") or ai_data.get("clinical_donts") or []
+        if isinstance(clinical_donts, str):
+            clinical_donts = [x.strip() for x in clinical_donts.split("\n") if x.strip()]
+
         diet_tips = (
             ai_data.get("dietary_guidelines") 
             or ai_data.get("dietary_advice") 
@@ -426,7 +461,7 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
             red_flag_tips = [t.strip() for t in red_flag_tips.split("\n") if t.strip()]
 
         # If empty, extract condition-specific tips from CSV
-        if not diet_tips or not red_flag_tips:
+        if not diet_tips or not red_flag_tips or not foods_to_eat:
             try:
                 guidance_csv_path = os.path.join(os.path.dirname(__file__), "..", "..", "datasets", "diet", "condition_guidance.csv")
                 if os.path.exists(guidance_csv_path):
@@ -436,19 +471,39 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
                     matched_g = df_g[df_g["condition_name"].str.lower().str.contains(cond_sub, na=False, regex=False)]
                     if not matched_g.empty:
                         row = matched_g.iloc[0]
-                        if not diet_tips:
+                        if not foods_to_eat:
                             diet_rec = str(row.get("diet_recommendation", "")).strip()
-                            avoid_food = str(row.get("food_to_limit", "") or row.get("what_to_avoid", "")).strip()
                             if diet_rec:
-                                diet_tips.append(f"Recommended Nutrition: {diet_rec}")
+                                foods_to_eat.append(diet_rec)
+                        if not foods_to_avoid:
+                            avoid_food = str(row.get("food_to_limit", "") or row.get("what_to_avoid", "")).strip()
                             if avoid_food:
-                                diet_tips.append(f"Foods to Avoid: {avoid_food}")
+                                foods_to_avoid.append(avoid_food)
+                        if not diet_tips:
+                            if foods_to_eat:
+                                diet_tips.extend([f"Recommended: {x}" for x in foods_to_eat])
+                            if foods_to_avoid:
+                                diet_tips.extend([f"Avoid: {x}" for x in foods_to_avoid])
                         if not red_flag_tips:
                             mon_adv = str(row.get("monitoring_advice", "")).strip()
                             if mon_adv:
                                 red_flag_tips.append(f"Clinical Alert: {mon_adv}")
             except Exception as e:
                 print(f"Condition guidance lookup notice: {e}")
+
+        # Default dos & donts if empty
+        if not clinical_dos:
+            clinical_dos = [
+                "Take all medications strictly at the advised dosage and timing." if lang_code == "en" else ("दवाएं सही समय और सही खुराक पर लें।" if lang_code == "hi" else "દવાઓ યોગ્ય સમયે અને નિયમિત માત્રામાં લો."),
+                "Maintain optimal rest and hydration to facilitate bodily recovery." if lang_code == "en" else ("शरीर को पूरा आराम दें और खूब पानी/तरल पदार्थ पिएं।" if lang_code == "hi" else "શરીરને પૂરતો આરામ આપો અને પ્રવાહીનું સેવન કરો."),
+                "Monitor temperature and key symptoms daily." if lang_code == "en" else ("तापमान और लक्षणों पर नियमित नजर रखें।" if lang_code == "hi" else "શરીરનું તાપમાન અને લક્ષણો પર નિયમિત ધ્યાન રાખો.")
+            ]
+        if not clinical_donts:
+            clinical_donts = [
+                "Do NOT self-medicate or stop prescribed antibiotics/dosages prematurely." if lang_code == "en" else ("बिना डॉक्टर की सलाह के दवाएं बंद या बदलें नहीं।" if lang_code == "hi" else "ડૉક્ટરની સલાહ વિના દવા બંધ કે બદલવી નહીં."),
+                "Avoid heavy physical exertion, smoking, and alcohol during recovery." if lang_code == "en" else ("भारी शारीरिक मेहनत और शराब/धूम्रपान से बचें।" if lang_code == "hi" else "વધુ પડતો શ્રમ અને બિનઆરોગ્યપ્રદ ટેવો ટાળો."),
+                "Do NOT ignore sudden severe chest pain, breathlessness, or high fever." if lang_code == "en" else ("तेज बुखार, सांस में तकलीफ या छाती में दर्द को नजरअंदाज न करें।" if lang_code == "hi" else "તીવ્ર તાવ કે શ્વાસની તકલીફને અવગણશો નહીં.")
+            ]
 
         return {
             "is_fallback": False,
@@ -463,6 +518,11 @@ Return strictly a valid JSON object with NO preamble or conversational text matc
             "yoga_recommendations": yoga_list,
             "compress_guidance": ai_data.get("compress_guidance"),
             "dietary_guidelines": diet_tips,
+            "foods_to_eat": foods_to_eat,
+            "foods_to_avoid": foods_to_avoid,
+            "hydration_advice": hyd_advice,
+            "clinical_dos": clinical_dos,
+            "clinical_donts": clinical_donts,
             "red_flags": red_flag_tips
         }
 
@@ -624,15 +684,30 @@ def _build_local_dataset_fallback(
     else:
         compress_info = None
 
-    # Fallback Warning Message & Summary
+    # Fallback Warning Message, Dietary & Clinical Care
     if lang_code == "hi":
         warning_msg = " [ऑफलाइन क्लिनिकल डेटासेट मोड]: लाइव AI API से संपर्क नहीं हो सका। मानकीकृत स्थानीय डेटासेट से डेटा दिखाया जा रहा है।"
         recovery_txt = f"5 – 7 दिन ({top_condition or 'लक्षणों'} के लिए उचित दवा, पर्याप्त आराम और तरल पदार्थों के सेवन के साथ)।"
         summary_txt = f"क्लिनिकल विश्लेषण के अनुसार लक्षण {top_condition or 'संक्रमण'} की ओर संकेत करते हैं। पर्याप्त विश्राम और समय पर दवा लेने की सलाह दी जाती है।"
-        diet_tips = csv_diet_tips if csv_diet_tips else [
-            f"{top_condition or 'रिकवरी'} के दौरान नारियल पानी, ओआरएस और गुनगुने तरल पदार्थों से शरीर में पानी का स्तर बनाए रखें।",
-            "सुपाच्य और पौष्टिक भोजन जैसे मूंग दाल की खिचड़ी, दलिया या सूप लें।",
-            "तेल-मसालेदार, तले हुए और बाहर के अस्वास्थ्यकर भोजन से पूरी तरह परहेज करें।"
+        foods_to_eat = [
+            f"{top_condition or 'बीमारी'} में सुपाच्य और पौष्टिक भोजन जैसे मूंग दाल की खिचड़ी, दलिया या सूप लें।",
+            "ताजे फल, उबली सब्जियां और पर्याप्त प्रोटीन युक्त आहार लें।",
+            "नारियल पानी, ओआरएस और गुनगुने तरल पदार्थों का सेवन करें।"
+        ]
+        foods_to_avoid = [
+            "तेल-मसालेदार, तले हुए और भारी गरिष्ठ भोजन से बचें।",
+            "अत्यधिक कैफीन, जंक फूड और पैकेट बंद मीठे पेय पदार्थों से परहेज करें।"
+        ]
+        hyd_advice = "प्रतिदिन 2.5 से 3 लीटर साफ गुनगुना पानी या ओआरएस घोल पिएं।"
+        clinical_dos = [
+            "सभी दवाएं डॉक्टर या फार्मासिस्ट के निर्देशानुसार सही समय पर लें।",
+            "शरीर को 7-8 घंटे का पर्याप्त विश्राम दें और तनाव से बचें।",
+            "प्रतिदिन शारीरिक तापमान और लक्षणों में बदलाव पर नजर रखें।"
+        ]
+        clinical_donts = [
+            "बिना डॉक्टर की सलाह के दवाओं की खुराक खुद से न बदलें।",
+            "संक्रमण के दौरान अत्यधिक शारीरिक श्रम या बाहर जाने से बचें।",
+            "लगातार तेज़ बुखार या सांस की तकलीफ को बिल्कुल नजरअंदाज न करें।"
         ]
         red_flags = csv_red_flags if csv_red_flags else [
             "लगातार 3 दिन से अधिक 103°F से तेज़ बुखार रहना या लक्षणों का बिगड़ना।",
@@ -643,10 +718,25 @@ def _build_local_dataset_fallback(
         warning_msg = " [ઓફલાઇન ક્લિનિકલ ડેટાસેટ મોડ]: લાઈવ AI API કનેક્ટ થઈ શક્યું નથી. સ્થાનિક પ્રમાણિત ડેટાસેટ દર્શાવવામાં આવી રહ્યું છે."
         recovery_txt = f"5 – 7 દિવસ ({top_condition or 'લક્ષણો'} માટે સાચી દવા, પૂરતો આરામ અને પ્રવાહીના સેવન સાથે)."
         summary_txt = f"ક્લિનિકલ વિશ્લેષણ મુજબ લક્ષણો {top_condition or 'ચેપ / સંક્રમણ'} સૂચવે છે. પૂરતો આરામ અને સમયસર દવા લેવાની ભલામણ કરવામાં આવે છે."
-        diet_tips = csv_diet_tips if csv_diet_tips else [
-            f"{top_condition or 'રિકવરી'} દરમિયાન નાળિયેર પાણી, ઓઆરએસ અને ગરમ પ્રવાહીથી શરીરમાં હાઇડ્રેશન જાળવી રાખો.",
-            "સરળતાથી પચી જાય તેવો હળવો ખોરાક જેમ કે મગની દાળની ખીચડી અને સૂપ લો.",
-            "તળેલો, વધુ મસાલેદાર અને બહારનો બિનઆરોગ્યપ્રદ ખોરાક ખાવાનું ટાળો."
+        foods_to_eat = [
+            f"{top_condition or 'રિકવરી'} દરમિયાન સરળતાથી પચી જાય તેવો હળવો ખોરાક જેમ કે મગની દાળની ખીચડી, રાબ અને સૂપ લો.",
+            "તાજા મોસમી ફળો અને પ્રોટીનયુક્ત આહારનું સેવન કરો.",
+            "નાળિયેર પાણી, ઓઆરએસ અને ગરમ પ્રવાહીથી હાઇડ્રેશન જાળવી રાખો."
+        ]
+        foods_to_avoid = [
+            "તળેલો, વધુ મસાલેદાર, ભારે અને બહારનો બિનઆરોગ્યપ્રદ ખોરાક ટાળો.",
+            "વધુ પડતી ખાંડવાળા પીણાં અને ઠંડી વસ્તુઓથી દૂર રહો."
+        ]
+        hyd_advice = "દરરોજ 2.5 થી 3 લિટર ચોખ્ખું નવશેકું પાણી અથવા પ્રવાહીનું સેવન કરો."
+        clinical_dos = [
+            "દવાઓ નિયમિતપણે અને યોગ્ય માત્રામાં જમ્યા પછી/પહેલાં લો.",
+            "શરીરને પૂરતો આરામ આપો અને તણાવ મુક્ત રહો.",
+            "દરરોજ શરીરનું તાપમાન અને લક્ષણોમાં સુધારો નોંધો."
+        ]
+        clinical_donts = [
+            "ડૉક્ટરની સલાહ વિના જાતે દવાઓ બંધ કે બદલશો નહીં.",
+            "બીમારી દરમિયાન વધુ પડતો શારીરિક શ્રમ કરવાનું ટાળો.",
+            "તીવ્ર તાવ, શ્વાસની તકલીફ કે છાતીમાં દુખાવાને અવગણશો નહીં."
         ]
         red_flags = csv_red_flags if csv_red_flags else [
             "સતત 3 દિવસથી વધુ સમય માટે 103°F થી વધુ તાવ રહેવો અથવા લક્ષણો વધવા.",
@@ -657,10 +747,25 @@ def _build_local_dataset_fallback(
         warning_msg = " [Offline Clinical Dataset Fallback Active]: Live AI APIs could not be reached. Displaying standardized local clinical dataset."
         recovery_txt = f"Expected recovery is 5 – 7 days for {top_condition or 'acute condition'} with adequate rest, hydration, and proper therapy."
         summary_txt = f"Clinical triage shows symptoms aligning with {top_condition or 'acute illness'}. Prompt hydration and symptomatic management indicated."
-        diet_tips = csv_diet_tips if csv_diet_tips else [
-            f"Maintain generous fluid intake and tailored nutrition for {top_condition or 'recovery'}.",
-            "Eat freshly prepared, easily digestible light meals such as khichdi or porridge.",
-            "Avoid oily, deep-fried, heavily spiced, and street foods during recovery."
+        foods_to_eat = [
+            f"Eat freshly prepared, nutrient-dense, easily digestible meals (khichdi, oats, clear vegetable soups) for {top_condition or 'recovery'}.",
+            "Include fresh Vitamin C-rich fruits and lean protein to support cellular healing.",
+            "Drink oral rehydration solutions, coconut water, or warm broths."
+        ]
+        foods_to_avoid = [
+            "Avoid deep-fried, heavily spiced, greasy, and ultra-processed foods.",
+            "Avoid unpasteurized dairy, raw undercooked meats, and excessive refined sugars."
+        ]
+        hyd_advice = "Drink 2.5 – 3.0 Liters of clean water or warm fluids daily."
+        clinical_dos = [
+            "Take all prescribed medications strictly as directed with proper food timings.",
+            "Ensure 7 – 9 hours of restful sleep to optimize immune recovery.",
+            "Track daily body temperature and symptom progression."
+        ]
+        clinical_donts = [
+            "Do NOT alter or stop prescribed medication courses prematurely without consulting your doctor.",
+            "Avoid strenuous physical exertion and crowded places during recovery.",
+            "Do NOT ignore worsening chest pain, acute shortness of breath, or persistent high fever."
         ]
         red_flags = csv_red_flags if csv_red_flags else [
             f"Worsening of {top_condition or 'symptoms'} or persistent high fever exceeding 103°F.",
@@ -680,7 +785,12 @@ def _build_local_dataset_fallback(
         "total_medicines_recommended": len(med_gallery),
         "yoga_recommendations": yoga_list,
         "compress_guidance": compress_info,
-        "dietary_guidelines": diet_tips,
+        "dietary_guidelines": foods_to_eat,
+        "foods_to_eat": foods_to_eat,
+        "foods_to_avoid": foods_to_avoid,
+        "hydration_advice": hyd_advice,
+        "clinical_dos": clinical_dos,
+        "clinical_donts": clinical_donts,
         "red_flags": red_flags
     }
 
