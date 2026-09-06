@@ -93,37 +93,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Hide Streamlit Community Cloud header (Fork, GitHub, menu) and footer/manage badges
-hide_streamlit_style = """
-<style>
-/* Top-right header (Fork, GitHub, menu buttons) hide karne ke liye */
-header[data-testid="stHeader"],
-.stAppHeader,
-[data-testid="stToolbar"],
-#MainMenu {
-    visibility: hidden !important;
-    height: 0% !important;
-    display: none !important;
-}
-
-/* Bottom-right badges (App status, Manage app, watermark) hide karne ke liye */
-footer {
-    visibility: hidden !important;
-    display: none !important;
-}
-
-[data-testid="stStatusWidget"],
-.viewerBadge_container__r5tak,
-.viewerBadge_link__qRIco,
-div[class*="viewerBadge"],
-div[class*="manageApp"],
-[data-testid="stDecoration"] {
-    display: none !important;
-    visibility: hidden !important;
-}
-</style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # Read query parameters to sync dark mode state if requested
 qp_theme = st.query_params.get("theme", None)
@@ -884,18 +853,33 @@ if st.session_state["active_panel"] == "Health Assessment":
                 if "symptom_name_hi" in row and pd.notna(row["symptom_name_hi"]):
                     sym_map_hi[eng_sym] = str(row["symptom_name_hi"]).strip()
 
+        major_diseases_df = getattr(triage_engine, "df_major_diseases", pd.DataFrame())
+        dis_map_hi = {}
+        dis_map_gu = {}
+        if not major_diseases_df.empty:
+            for _, d_row in major_diseases_df.iterrows():
+                d_eng = str(d_row.get("disease_name", "")).strip()
+                if "disease_name_hi" in d_row and pd.notna(d_row["disease_name_hi"]):
+                    dis_map_hi[d_eng] = str(d_row["disease_name_hi"]).strip()
+                if "disease_name_gu" in d_row and pd.notna(d_row["disease_name_gu"]):
+                    dis_map_gu[d_eng] = str(d_row["disease_name_gu"]).strip()
+
         def format_symptom_display(s_name):
             if lang_code == "gu":
+                if s_name in dis_map_gu:
+                    return f"{dis_map_gu[s_name]} ({s_name})"
                 gu_val = sym_map_gu.get(s_name)
                 return f"{gu_val} ({s_name})" if gu_val and gu_val != s_name else s_name
             elif lang_code == "hi":
+                if s_name in dis_map_hi:
+                    return f"{dis_map_hi[s_name]} ({s_name})"
                 hi_val = sym_map_hi.get(s_name)
                 return f"{hi_val} ({s_name})" if hi_val and hi_val != s_name else s_name
+            elif not major_diseases_df.empty and s_name in major_diseases_df["disease_name"].values:
+                return f"{s_name} (Major Condition)"
             return s_name
 
-        major_diseases_df = getattr(triage_engine, "df_major_diseases", pd.DataFrame())
-        
-        # Build search options combining symptoms and major diseases
+        # Build search options combining symptoms and 100+ major Indian diseases
         all_symptom_names = []
         if not symptoms_df.empty:
             all_symptom_names = symptoms_df["symptom_name"].tolist()
@@ -944,25 +928,27 @@ if st.session_state["active_panel"] == "Health Assessment":
             st.session_state["show_free_text_nlp"] = True
             st.markdown("""
             <div style="background: rgba(37, 99, 235, 0.06); border: 1px solid rgba(37, 99, 235, 0.25); border-radius: 10px; padding: 12px 14px; margin: 8px 0 12px 0;">
-                <b style="font-size: 0.84rem; color: #3B82F6;"><img src="https://cdn-icons-png.flaticon.com/128/12512/12512364.png" style="width: 1.1em; height: 1.1em; vertical-align: -0.15em; display: inline-block;" /> AI Multilingual Clinical Extractor (English / हिन्दी / ગુજરાતી)</b>
+                <b style="font-size: 0.84rem; color: #3B82F6;"><img src="https://cdn-icons-png.flaticon.com/128/12512/12512364.png" style="width: 1.1em; height: 1.1em; vertical-align: -0.15em; display: inline-block;" /> MediMind AI Multilingual Clinical Extractor (English / हिन्दी / ગુજરાતી)</b>
                 <p style="font-size: 0.76rem; color: var(--mm-text-secondary); margin: 3px 0 8px 0;">Type any condition, disease (e.g. <i>"blood cancer"</i>, <i>"हार्ट अटैक"</i>, <i>"ડાયાબિટીસ"</i>), or symptoms in your own words.</p>
             </div>
             """, unsafe_allow_html=True)
             
-            ft_c1, ft_c2 = st.columns([3, 1.2])
-            with ft_c1:
-                free_sym_input = st.text_input(
-                    "Describe in Your Own Words",
-                    placeholder='e.g. "blood cancer", "Severe chest pain and sweating", "મને 3 દિવસથી ખૂબ તાવ અને ઉધરસ છે"...',
-                    key="p1_free_text_input",
-                    label_visibility="collapsed"
-                )
-            with ft_c2:
-                extract_nlp_btn = st.button("Extract with AI", key="btn_extract_nlp_trigger", type="primary", use_container_width=True)
+            with st.form("p1_free_text_form", clear_on_submit=False, border=False):
+                ft_c1, ft_c2 = st.columns([3, 1.2])
+                with ft_c1:
+                    free_sym_input = st.text_input(
+                        "Describe in Your Own Words",
+                        placeholder='e.g. "blood cancer", "Severe chest pain and sweating", "મને 3 દિવસથી ખૂબ તાવ અને ઉધરસ છે"...',
+                        key="p1_free_text_input",
+                        label_visibility="collapsed"
+                    )
+                with ft_c2:
+                    extract_nlp_btn = st.form_submit_button("Extract with Gemini AI", type="primary", use_container_width=True)
 
-            if (extract_nlp_btn or free_sym_input) and free_sym_input:
-                with st.spinner("AI parsing disease and clinical symptoms..."):
-                    extracted_nlp = symptom_extractor.extract_symptoms_and_medicines(free_sym_input, user_lang=lang_code)
+            if extract_nlp_btn and free_sym_input and free_sym_input.strip():
+                query_text = free_sym_input.strip()
+                with st.spinner("Gemini AI analyzing keywords and extracting clinical symptoms..."):
+                    extracted_nlp = symptom_extractor.extract_symptoms_and_medicines(query_text, user_lang=lang_code)
                     new_added = 0
                     for sname in extracted_nlp.get("symptom_labels", []):
                         if sname not in st.session_state["selected_symptoms_list"]:
@@ -977,49 +963,15 @@ if st.session_state["active_panel"] == "Health Assessment":
                     if extracted_nlp.get("detected_disease"):
                         d_info = extracted_nlp["detected_disease"]
                         d_disp_name = d_info.get("name_hi") if lang_code == "hi" else (d_info.get("name_gu") if lang_code == "gu" else d_info.get("name"))
-                        st.success(f"AI Detected Condition: **{d_disp_name}** ({d_info.get('category')}) — {len(extracted_nlp.get('symptom_labels', []))} clinical symptoms mapped!")
+                        st.session_state["p1_nlp_msg"] = f"MediMind AI Detected: **{d_disp_name}** ({d_info.get('category')}) — {len(extracted_nlp.get('symptom_labels', []))} clinical symptoms mapped!"
                     elif new_added > 0:
-                        st.success(f"AI Extracted {new_added} clinical symptoms from your description!")
+                        st.session_state["p1_nlp_msg"] = f"MediMind AI Extracted {new_added} clinical symptoms from your description!"
+                    else:
+                        st.session_state["p1_nlp_msg"] = "MediMind AI: No matching symptoms found. Try describing symptoms like fever, headache, etc."
+                    st.rerun()
 
-        # Dedicated 100+ India Major Diseases Quick Selector
-        with st.expander("Quick Select: Major Indian Diseases & Chronic Conditions (भारत की प्रमुख बीमारियां)", expanded=False):
-            if not major_diseases_df.empty:
-                cat_options = ["All Categories"] + sorted(major_diseases_df["category"].unique().tolist())
-                sel_cat = st.selectbox("Filter by Category", options=cat_options, key="p1_major_dis_cat")
-                
-                filtered_dis_df = major_diseases_df if sel_cat == "All Categories" else major_diseases_df[major_diseases_df["category"] == sel_cat]
-                
-                dis_col1, dis_col2 = st.columns([3, 1])
-                with dis_col1:
-                    def format_disease_option(d_row_id):
-                        m_row = major_diseases_df[major_diseases_df["disease_id"] == d_row_id].iloc[0]
-                        d_name_val = m_row.get("disease_name_hi") if lang_code == "hi" else (m_row.get("disease_name_gu") if lang_code == "gu" else m_row.get("disease_name"))
-                        return f"{d_name_val} ({m_row.get('category')})"
-
-                    sel_dis_id = st.selectbox(
-                        "Select Major Condition",
-                        options=filtered_dis_df["disease_id"].tolist(),
-                        format_func=format_disease_option,
-                        key="p1_major_dis_select"
-                    )
-                with dis_col2:
-                    if st.button("Add Condition Symptoms", key="btn_add_major_dis_syms", use_container_width=True):
-                        d_match_row = major_diseases_df[major_diseases_df["disease_id"] == sel_dis_id].iloc[0]
-                        raw_syms = d_match_row.get("symptoms", [])
-                        if isinstance(raw_syms, str):
-                            try:
-                                d_syms = eval(raw_syms) if raw_syms.startswith("[") else [x.strip() for x in raw_syms.split(",")]
-                            except Exception:
-                                d_syms = [x.strip() for x in raw_syms.split(",")]
-                        else:
-                            d_syms = list(raw_syms) if isinstance(raw_syms, (list, tuple)) else []
-                        
-                        for ds in d_syms:
-                            if ds not in st.session_state["selected_symptoms_list"]:
-                                st.session_state["selected_symptoms_list"].append(ds)
-                        st.session_state["detected_chief_condition"] = d_match_row.to_dict()
-                        st.success(f"Added {len(d_syms)} symptoms for {d_match_row['disease_name']}")
-                        st.rerun()
+            if st.session_state.get("p1_nlp_msg"):
+                st.success(st.session_state["p1_nlp_msg"])
 
         st.markdown(f"<div style='font-size: 0.78rem; font-weight: 700; color: var(--mm-text-secondary); margin: 12px 0 8px 0;'>{T.get('popular_symptoms', 'Common Symptoms:')}</div>", unsafe_allow_html=True)
         pop_symptoms_data = [
@@ -1056,6 +1008,7 @@ if st.session_state["active_panel"] == "Health Assessment":
                 if st.button(T.get("clear_all", "Clear All"), key="clear_all_sym_btn", use_container_width=True):
                     st.session_state["selected_symptoms_list"] = []
                     st.session_state["detected_chief_condition"] = None
+                    st.session_state["p1_nlp_msg"] = None
                     st.rerun()
         else:
             st.caption(T.get("no_symptoms_selected", "No symptoms selected yet. Type in your own words, search above, or select common symptoms."))
@@ -1259,23 +1212,36 @@ if st.session_state["active_panel"] == "Health Assessment":
                 
                 selected_ids = []
                 symptom_ontology_map = {
-                    "fever": ["S000001", "S000002", "S000252", "S000253", "S000254", "S000257"],
-                    "high fever": ["S000002", "S000001"],
-                    "headache": ["S000061", "S000062", "S000063"],
-                    "cough": ["S000023", "S000024", "S000260"],
+                    "fever": ["S000001"],
+                    "high fever": ["S000002"],
+                    "high fever (above 103°f/39.4°c)": ["S000002"],
+                    "headache": ["S000061"],
+                    "cough": ["S000023"],
                     "dry cough": ["S000023"],
-                    "sore throat": ["S000030", "S000032"],
-                    "fatigue": ["S000005", "S000006", "S000012"],
-                    "body pain": ["S000011", "S000257"],
-                    "body ache": ["S000011", "S000257"],
-                    "nausea": ["S000086", "S000087"],
-                    "vomiting": ["S000087", "S000086"],
-                    "cold": ["S000035", "S000036", "S000023"],
-                    "chills": ["S000003", "S000253"],
-                    "diarrhea": ["S000089", "S000090"],
-                    "stomach pain": ["S000091", "S000092"],
-                    "chest pain": ["S000055", "S000060", "S000029"],
-                    "shortness of breath": ["S000026", "S000027", "S000260"],
+                    "sore throat": ["S000030"],
+                    "fatigue": ["S000005"],
+                    "severe fatigue": ["S000006"],
+                    "severe fatigue and weakness": ["S000006"],
+                    "body pain": ["S000011"],
+                    "body ache": ["S000011"],
+                    "nausea": ["S000086"],
+                    "vomiting": ["S000087"],
+                    "cold": ["S000035"],
+                    "chills": ["S000003"],
+                    "diarrhea": ["S000089"],
+                    "stomach pain": ["S000091"],
+                    "chest pain": ["S000046"],
+                    "shortness of breath": ["S000026"],
+                    "easy bruising": ["S000127"],
+                    "easy bruising or bleeding": ["S000127"],
+                    "easy bruising and bleeding (petechiae / purpura)": ["S000127"],
+                    "petechiae": ["S000127"],
+                    "frequent infections": ["S000001"],
+                    "bone and joint pain": ["S000011"],
+                    "night sweats": ["S000003"],
+                    "drenching night sweats": ["S000003"],
+                    "unintended weight loss": ["S000017"],
+                    "unintentional weight loss and night sweats": ["S000017"],
                 }
                 
                 for s_name in st.session_state.get("selected_symptoms_list", []):
@@ -1625,41 +1591,140 @@ if st.session_state["active_panel"] == "Health Assessment":
 </div>
 </div>""", unsafe_allow_html=True)
 
-        # 8. Diet & Red Flags
-        col_ns1, col_ns2 = st.columns(2)
-        diet_tips = care_res.get("dietary_guidelines") or [
-            T.get("diet_tip_1", "Maintain adequate hydration with warm fluids, coconut water, or oral rehydration solution."),
-            T.get("diet_tip_2", "Eat easily digestible, nutrient-dense meals such as vegetable soups and khichdi."),
-            T.get("diet_tip_3", "Avoid heavy, oily, spicy, and ultra-processed foods during recovery.")
-        ]
-        red_flag_tips = care_res.get("red_flags") or [
-            T.get("redflag_tip_1", "Persistent high fever (>103°F) for more than 3 consecutive days."),
-            T.get("redflag_tip_2", "Shortness of breath, chest pain, or sudden confusion/dizziness."),
-            T.get("redflag_tip_3", "Inability to retain liquids or severe signs of dehydration.")
-        ]
-        with col_ns1:
-            tips_html = "".join([f"<li>{tip}</li>"for tip in diet_tips])
+        # 7.5. Recommended Clinical Diagnostic Laboratory Tests
+        tests_list = t_res.get("tests_to_discuss", [])
+        if tests_list:
+            tests_chips_html = "".join([f'<span style="background: rgba(109, 40, 217, 0.08); color: #5B21B6; border: 1.5px solid rgba(139, 92, 246, 0.45); border-radius: 8px; padding: 6px 14px; font-size: 0.84rem; font-weight: 700; margin-right: 8px; margin-bottom: 8px; display: inline-flex; align-items: center;">{t}</span>' for t in tests_list])
             st.markdown(f"""
-            <div class="mm-card"style="background: rgba(30, 122, 76, 0.08); border: 1px solid rgba(30, 122, 76, 0.3); padding: 14px; margin-top: 6px;">
-                <b style="font-size: 0.88rem; color: #4ADE80;">{T.get("dietary_guidance_title", "Dietary & Hydration Guidance")}</b>
-                <ul style="font-size: 0.80rem; color: var(--mm-text-secondary); margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
-                    {tips_html}
-                </ul>
+            <div class="mm-card"style="background: rgba(109, 40, 217, 0.06); border: 1.5px solid rgba(139, 92, 246, 0.35); border-left: 5px solid #7C3AED; padding: 14px 18px; margin-top: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <b style="color: #6D28D9; font-size: 0.98rem; font-weight: 700;">
+                        {T.get('diagnostic_tests_title', 'Recommended Clinical Diagnostic Tests (To Discuss with Physician)')}
+                    </b>
+                    <span class="mm-badge" style="background: rgba(109, 40, 217, 0.12); color: #6D28D9; border: 1px solid rgba(109, 40, 217, 0.35); font-weight: 700;">{len(tests_list)} {T.get('lab_tests_badge', 'Lab Tests')}</span>
+                </div>
+                <p style="font-size: 0.80rem; color: var(--mm-text-secondary); margin: 2px 0 10px 0;">{T.get('diagnostic_tests_sub', 'Share these standard laboratory and diagnostic workup recommendations with your consulting physician.')}</p>
+                <div style="display: flex; flex-wrap: wrap;">{tests_chips_html}</div>
             </div>
             """, unsafe_allow_html=True)
-        with col_ns2:
-            rf_html = "".join([f"<li>{tip}</li>"for tip in red_flag_tips])
+
+        # 8. Nutrition & Clinical Care Guidelines (Foods to Eat / Avoid, Dos & Don'ts)
+        col_ns1, col_ns2 = st.columns(2)
+        
+        # Dietary Data (100% Dynamic from Live AI API)
+        raw_eat = care_res.get("foods_to_eat") or care_res.get("dietary_guidelines") or []
+        foods_eat = [raw_eat] if isinstance(raw_eat, str) else [str(x) for x in raw_eat if str(x).strip()]
+        
+        raw_avoid = care_res.get("foods_to_avoid") or []
+        foods_avoid = [raw_avoid] if isinstance(raw_avoid, str) else [str(x) for x in raw_avoid if str(x).strip()]
+        
+        hyd_text = care_res.get("hydration_advice") or ""
+
+        # Clinical Care Data (100% Dynamic from Live AI API)
+        raw_dos = care_res.get("clinical_dos") or care_res.get("dos") or []
+        clinical_dos = [raw_dos] if isinstance(raw_dos, str) else [str(x) for x in raw_dos if str(x).strip()]
+        
+        raw_donts = care_res.get("clinical_donts") or care_res.get("donts") or []
+        clinical_donts = [raw_donts] if isinstance(raw_donts, str) else [str(x) for x in raw_donts if str(x).strip()]
+        
+        raw_warn = care_res.get("red_flags") or []
+        warning_signs = [raw_warn] if isinstance(raw_warn, str) else [str(x) for x in raw_warn if str(x).strip()]
+
+        with col_ns1:
+            eat_li = "".join([f"<li style='margin-bottom: 5px; color: var(--mm-text-primary); font-size: 0.82rem; line-height: 1.5;'><b style='color: #047857;'>•</b> {item}</li>" for item in foods_eat]) if foods_eat else f"<li style='color: var(--mm-text-secondary); font-size: 0.82rem;'>{T.get('personalized_diet_text', 'Follow personalized light and nutritious diet.')}</li>"
+            avoid_li = "".join([f"<li style='margin-bottom: 5px; color: var(--mm-text-primary); font-size: 0.82rem; line-height: 1.5;'><b style='color: #C2410C;'>•</b> {item}</li>" for item in foods_avoid]) if foods_avoid else f"<li style='color: var(--mm-text-secondary); font-size: 0.82rem;'>{T.get('avoid_heavy_food_text', 'Avoid oily, spicy, and heavily processed food.')}</li>"
+            hyd_section = f"""<div style="background: rgba(37, 99, 235, 0.08); border-left: 3.5px solid #2563EB; border-radius: 8px; padding: 10px 14px; margin-top: 10px;">
+                    <b style="font-size: 0.82rem; color: #1D4ED8; font-weight: 700;">{T.get('hydration_advice_title', 'Hydration Advice:')}</b>
+                    <div style="font-size: 0.80rem; color: var(--mm-text-primary); margin-top: 3px; line-height: 1.45;">{hyd_text}</div>
+                </div>""" if hyd_text else ""
             st.markdown(f"""
-            <div class="mm-card"style="background: rgba(179, 38, 30, 0.08); border: 1px solid rgba(179, 38, 30, 0.3); padding: 14px; margin-top: 6px;">
-                <b style="font-size: 0.88rem; color: #F87171;">{T.get("red_flag_title", "Emergency Red-Flag Symptoms (Seek Immediate Care)")}</b>
-                <ul style="font-size: 0.80rem; color: var(--mm-text-secondary); margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
-                    {rf_html}
+            <div class="mm-card"style="background: rgba(5, 150, 105, 0.06); border: 1.5px solid rgba(5, 150, 105, 0.35); border-left: 5px solid #059669; padding: 16px; margin-top: 14px; height: 100%; box-sizing: border-box;">
+                <b style="font-size: 0.98rem; color: #047857; font-weight: 700; display: block; margin-bottom: 10px;">
+                    {T.get('dietary_nutrition_title', 'Dietary Nutrition Guide')}
+                </b>
+                <div>
+                    <div style="font-size: 0.84rem; font-weight: 700; color: #047857; margin-bottom: 4px;">{T.get('foods_to_eat_title', 'Recommended Foods:')}</div>
+                    <ul style="margin: 0 0 10px 0; padding-left: 14px; list-style-type: none;">
+                        {eat_li}
+                    </ul>
+                </div>
+                <div>
+                    <div style="font-size: 0.84rem; font-weight: 700; color: #C2410C; margin-bottom: 4px;">{T.get('foods_to_avoid_title', 'Foods to Avoid / Limit:')}</div>
+                    <ul style="margin: 0 0 10px 0; padding-left: 14px; list-style-type: none;">
+                        {avoid_li}
+                    </ul>
+                </div>
+                {hyd_section}
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col_ns2:
+            dos_li = "".join([f"<li style='margin-bottom: 5px; color: var(--mm-text-primary); font-size: 0.82rem; line-height: 1.5;'><b style='color: #0284C7;'>•</b> {item}</li>" for item in clinical_dos]) if clinical_dos else f"<li style='color: var(--mm-text-secondary); font-size: 0.82rem;'>{T.get('take_meds_text', 'Take prescribed medications on time and take adequate rest.')}</li>"
+            donts_li = "".join([f"<li style='margin-bottom: 5px; color: var(--mm-text-primary); font-size: 0.82rem; line-height: 1.5;'><b style='color: #DC2626;'>•</b> {item}</li>" for item in clinical_donts]) if clinical_donts else f"<li style='color: var(--mm-text-secondary); font-size: 0.82rem;'>{T.get('dont_exert_text', 'Do not alter dosages or perform heavy physical exertion.')}</li>"
+            warn_li = "".join([f"<li style='margin-bottom: 4px; color: var(--mm-text-primary); font-size: 0.80rem; line-height: 1.45;'><b style='color: #DC2626;'>•</b> {item}</li>" for item in warning_signs]) if warning_signs else ""
+            warn_section = f"""<div style="background: rgba(220, 38, 38, 0.08); border-left: 3.5px solid #DC2626; border-radius: 8px; padding: 10px 14px; margin-top: 10px;">
+                    <b style="font-size: 0.82rem; color: #DC2626; font-weight: 700;">{T.get('warning_signs_title', 'Key Warning Signs:')}</b>
+                    <ul style="margin: 3px 0 0 0; padding-left: 14px; list-style-type: none;">
+                        {warn_li}
+                    </ul>
+                </div>""" if warn_li else ""
+            st.markdown(f"""
+            <div class="mm-card"style="background: rgba(37, 99, 235, 0.06); border: 1.5px solid rgba(37, 99, 235, 0.35); border-left: 5px solid #2563EB; padding: 16px; margin-top: 14px; height: 100%; box-sizing: border-box;">
+                <b style="font-size: 0.98rem; color: #1D4ED8; font-weight: 700; display: block; margin-bottom: 10px;">
+                    {T.get('care_safety_title', 'Clinical Care Dos & Don\'ts')}
+                </b>
+                <div>
+                    <div style="font-size: 0.84rem; font-weight: 700; color: #0369A1; margin-bottom: 4px;">{T.get('clinical_dos_title', 'Essential Dos:')}</div>
+                    <ul style="margin: 0 0 10px 0; padding-left: 14px; list-style-type: none;">
+                        {dos_li}
+                    </ul>
+                </div>
+                <div>
+                    <div style="font-size: 0.84rem; font-weight: 700; color: #DC2626; margin-bottom: 4px;">{T.get('clinical_donts_title', 'Critical Don\'ts:')}</div>
+                    <ul style="margin: 0 0 10px 0; padding-left: 14px; list-style-type: none;">
+                        {donts_li}
+                    </ul>
+                </div>
+                {warn_section}
+            </div>
+            """, unsafe_allow_html=True)
+
+        # 8.5. Emergency Red-Flag Alert Banner (Positioned at the bottom before Action Bar)
+        if t_res.get("is_emergency") and t_res.get("red_flags"):
+            rf_items_html = "".join([f"<li style='margin-bottom: 4px;'><b>{rf.get('symptom_name', 'Critical Symptom')}:</b> {rf.get('immediate_action_protocol', 'Seek prompt emergency medical evaluation.')}</li>" for rf in t_res.get("red_flags", [])])
+            st.markdown(f"""
+            <div style="background: rgba(220, 38, 38, 0.12); border: 1.5px solid #EF4444; border-left: 5px solid #DC2626; border-radius: 12px; padding: 14px 18px; margin-top: 16px; margin-bottom: 8px;">
+                <b style="color: #EF4444; font-size: 0.98rem; display: flex; align-items: center; gap: 8px;">
+                    EMERGENCY RED FLAG DETECTED — IMMEDIATE MEDICAL EVALUATION REQUIRED
+                </b>
+                <ul style="font-size: 0.82rem; color: var(--mm-text-primary); margin: 8px 0 0 0; padding-left: 20px; line-height: 1.55;">
+                    {rf_items_html}
                 </ul>
             </div>
             """, unsafe_allow_html=True)
 
         # 9. ACTION BAR: DEEP EXPLAIN, DOWNLOAD REPORT (PDF), SCAN NEW (Positioned right above Medical Disclaimer)
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        div[data-testid="stHorizontalBlock"] .stButton > button,
+        div[data-testid="stHorizontalBlock"] .stDownloadButton > button,
+        div[data-testid="stHorizontalBlock"] button {
+            height: 38px !important;
+            min-height: 38px !important;
+            max-height: 38px !important;
+            padding: 0 12px !important;
+            font-size: 0.82rem !important;
+            font-weight: 700 !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            line-height: 1 !important;
+        }
+        </style>
+        <div style='height: 12px;'></div>
+        """, unsafe_allow_html=True)
         col_act1, col_act2, col_act3 = st.columns([1.1, 1.1, 0.8])
         with col_act1:
             if st.button(T.get("deep_explain_btn", "Deep Explain with MediMind AI"), key="btn_toggle_deep_explain", type="primary", use_container_width=True):
@@ -1683,15 +1748,17 @@ if st.session_state["active_panel"] == "Health Assessment":
         with col_act2:
             try:
                 pdf_user_ctx = {
-                    "age": u_ctx.get("age_group", "21-30 Years"),
+                    "age": u_ctx.get("age", u_ctx.get("age_group", "21-30 Years")),
                     "gender": u_ctx.get("gender", "Male"),
-                    "location": u_ctx.get("state", "India"),
+                    "location": u_ctx.get("location", u_ctx.get("state", "India")),
                     "duration": u_ctx.get("duration", "1-3 Days"),
                     "severity": u_ctx.get("severity", "Moderate"),
                     "blood_group": u_ctx.get("blood_group", "None"),
-                    "pre_existing": u_ctx.get("pre_existing", "None"),
-                    "current_meds": u_ctx.get("current_meds", "None"),
+                    "pre_existing": ", ".join(u_ctx.get("conditions", ["None"])) if isinstance(u_ctx.get("conditions"), list) else str(u_ctx.get("conditions", "None")),
+                    "current_meds": u_ctx.get("medications", u_ctx.get("current_meds", "None")),
                     "allergies": u_ctx.get("allergies", "None"),
+                    "surgeries": u_ctx.get("surgeries", "None"),
+                    "family_history": u_ctx.get("surgeries", "None"),
                     "symptoms": st.session_state.get("selected_symptoms_list", [])
                 }
                 pdf_data = generate_pdf_report(pdf_user_ctx, t_res, care_res)
