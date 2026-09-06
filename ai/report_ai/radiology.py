@@ -202,14 +202,14 @@ Return strictly a valid JSON object matching this schema:
 }}"""
 
         if GEMINI_API_KEY:
-            for model in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-3.7-flash", "gemini-flash-latest"]:
+            for model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]:
                 try:
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
                     payload = {
                         "contents": [{"parts": [{"text": prompt}]}],
                         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048, "responseMimeType": "application/json"}
                     }
-                    res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=8)
+                    res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=10)
                     if res.status_code == 200:
                         data = res.json()
                         candidates = data.get("candidates", [])
