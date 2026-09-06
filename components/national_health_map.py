@@ -98,6 +98,8 @@ def generate_health_resource_map_html(facilities: list, dark_mode: bool = False,
             box-shadow: 0 12px 30px rgba(0,0,0,0.35) !important;
             padding: 14px 16px !important;
             border: 1px solid {('#334155' if dark_mode else '#E2E8F0')} !important;
+            max-width: 88vw !important;
+            box-sizing: border-box !important;
         }}
         .gm-style .gm-style-iw-tc::after {{
             background: {('#1E293B' if dark_mode else '#FFFFFF')} !important;
@@ -105,6 +107,8 @@ def generate_health_resource_map_html(facilities: list, dark_mode: bool = False,
         .gm-style-iw-d {{
             overflow: visible !important;
             max-height: none !important;
+            max-width: 85vw !important;
+            box-sizing: border-box !important;
         }}
         
         .legend {{
@@ -134,6 +138,16 @@ def generate_health_resource_map_html(facilities: list, dark_mode: bool = False,
         }}
         .legend-item {{ display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-weight: 500; }}
         .legend-dot {{ width: 11px; height: 11px; border-radius: 50%; display: inline-block; box-shadow: 0 0 4px rgba(0,0,0,0.2); }}
+
+        @media (max-width: 480px) {{
+            .legend {{
+                top: 10px;
+                left: 10px;
+                padding: 8px 10px;
+                font-size: 10px;
+                max-width: calc(100vw - 20px);
+            }}
+        }}
     </style>
 </head>
 <body>
@@ -197,7 +211,7 @@ def generate_health_resource_map_html(facilities: list, dark_mode: bool = False,
                 }});
 
                 const contentHtml = `
-                    <div style="font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.55; min-width: 220px;">
+                    <div style="font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.55; min-width: 180px; max-width: 82vw; box-sizing: border-box; word-break: break-word;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <span style="font-weight: 800; font-size: 13.5px; color: ${{f.color}};">${{f.name}}</span>
                             <span style="background: ${{f.color}}20; color: ${{f.color}}; border: 1px solid ${{f.color}}50; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">${{f.type}}</span>
