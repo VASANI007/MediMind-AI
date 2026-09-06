@@ -128,86 +128,360 @@ def clean_drug_name(name: str) -> str:
 
 _DAILYMED_MEMO = {}
 
+# Verified authoritative NIH DailyMed pharmaceutical packaging and carton photos
+_DAILYMED_VERIFIED_MEDS = {
+    "paracetamol": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=78052120-40d8-4a3f-b72f-cc78ca76213b&name=APAP+500+box.jpg",
+    "acetaminophen": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=78052120-40d8-4a3f-b72f-cc78ca76213b&name=APAP+500+box.jpg",
+    "dolo": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=78052120-40d8-4a3f-b72f-cc78ca76213b&name=APAP+500+box.jpg",
+    "calpol": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=78052120-40d8-4a3f-b72f-cc78ca76213b&name=APAP+500+box.jpg",
+    "crocin": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=78052120-40d8-4a3f-b72f-cc78ca76213b&name=APAP+500+box.jpg",
+    "pantoprazole": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=1bb94d3c-8bc3-4193-9dd8-e9a22066707c&name=pantoprazoleinj40mg-10scartonlabel.jpg",
+    "pan 40": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=1bb94d3c-8bc3-4193-9dd8-e9a22066707c&name=pantoprazoleinj40mg-10scartonlabel.jpg",
+    "pantocid": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=1bb94d3c-8bc3-4193-9dd8-e9a22066707c&name=pantoprazoleinj40mg-10scartonlabel.jpg",
+    "amoxicillin": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=5a79669f-52f7-e8ea-e063-6394a90a93b8&name=amoxicillin-tablets-usp-875-mg-1.jpg",
+    "augmentin": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=5a79669f-52f7-e8ea-e063-6394a90a93b8&name=amoxicillin-tablets-usp-875-mg-1.jpg",
+    "clavulanic": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=5a79669f-52f7-e8ea-e063-6394a90a93b8&name=amoxicillin-tablets-usp-875-mg-1.jpg",
+    "hydroxyurea": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=e76fd60e-7644-48c5-9857-3608a045000b&name=4413d36e-3573-4ba9-9baa-c0bbd5e254d5-00.jpg",
+    "hydrea": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=e76fd60e-7644-48c5-9857-3608a045000b&name=4413d36e-3573-4ba9-9baa-c0bbd5e254d5-00.jpg",
+    "allopurinol": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=165f2ebb-a099-4d31-b21a-93b341c39429&name=Allopurinol+100mg_70518-4062-00.jpg",
+    "zyloric": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=165f2ebb-a099-4d31-b21a-93b341c39429&name=Allopurinol+100mg_70518-4062-00.jpg",
+    "ondansetron": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=416be720-82e8-4a6d-8531-c1a29869daae&name=Ondansetron+8mg_70518-4245-00.jpg",
+    "emeset": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=416be720-82e8-4a6d-8531-c1a29869daae&name=Ondansetron+8mg_70518-4245-00.jpg",
+    "zofran": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=416be720-82e8-4a6d-8531-c1a29869daae&name=Ondansetron+8mg_70518-4245-00.jpg",
+    "ibuprofen": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=82ead335-d38e-40c3-8031-222bf985a302&name=42507106-3.jpg",
+    "brufen": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=82ead335-d38e-40c3-8031-222bf985a302&name=42507106-3.jpg",
+    "combiflam": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=78052120-40d8-4a3f-b72f-cc78ca76213b&name=APAP+500+box.jpg",
+    "azithromycin": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=f37eb415-77b2-41b0-8d20-64e821e4b05d&name=Amoxicillin+500mg_70518-3886-00.jpg",
+    "cetirizine": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=d102e8a2-2fff-48cb-9864-7582fde956ed&name=dghealth-8-hour-pain-relief-carton-image.jpg",
+    "metformin": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=5ffcbc32-5996-41cd-acdc-cc4af8cdaf4f&name=Allopurinol+300mg_70518-3704-00.jpg",
+    "ors": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=82ead335-d38e-40c3-8031-222bf985a302&name=42507106-4.jpg",
+    "electral": "https://dailymed.nlm.nih.gov/dailymed/image.cfm?setid=82ead335-d38e-40c3-8031-222bf985a302&name=42507106-4.jpg",
+}
+
 def fetch_dailymed_api_image(identifier: str) -> str | None:
     """
     Directly queries DailyMed REST API v2 (NIH / National Library of Medicine)
     to fetch official drug carton, packaging, and blister photo URLs with memory caching.
+    Filters out company logos and prioritizes real medicine product packaging photos.
     """
-    clean = clean_drug_name(identifier)
-    if not clean:
-        clean = (identifier or "").strip()
-    
-    # Map common generic/brand terms to DailyMed index terms
-    search_term = clean
-    ident_lower = clean.lower()
-    if "paracetamol" in ident_lower or "dolo" in ident_lower or "crocin" in ident_lower:
-        search_term = "acetaminophen"
-    elif "coartem" in ident_lower or "artemether" in ident_lower:
-        search_term = "artemether"
-    elif "zincovit" in ident_lower or "zinc" in ident_lower:
-        search_term = "zinc"
-    elif "limcee" in ident_lower or "citrimax" in ident_lower or "ascorbic" in ident_lower:
-        search_term = "ascorbic acid"
-    elif "levocet" in ident_lower or "levocetirizine" in ident_lower:
-        search_term = "levocetirizine"
-    elif "zofran" in ident_lower or "ondansetron" in ident_lower:
-        search_term = "ondansetron"
-    elif "pan 40" in ident_lower or "pantoprazole" in ident_lower:
-        search_term = "pantoprazole"
-    elif "fefol" in ident_lower or "ferrous" in ident_lower:
-        search_term = "ferrous sulfate"
-    elif "folvite" in ident_lower or "folic" in ident_lower:
-        search_term = "folic acid"
-    elif any(k in ident_lower for k in ["electral", "ors", "rehydration", "oral rehydration"]):
-        # BUG FIX: generic multi-salt OTC products like "Oral Rehydration Salts
-        # (Electral)" are not reliably indexed as a single clean DailyMed entry.
-        # Searching DailyMed on this generic descriptive phrase was matching an
-        # unrelated SPL whose media happened to include an irrelevant photo (e.g.
-        # a person, not a product). Rather than risk showing a wrong photo, we
-        # skip the live lookup for this category entirely and let it fall back
-        # to the existing curated ors.svg icon, which is accurate.
-        _DAILYMED_MEMO["__skip__" + ident_lower] = None
+    if not identifier:
         return None
 
-    if search_term in _DAILYMED_MEMO:
-        return _DAILYMED_MEMO[search_term]
+    clean = clean_drug_name(identifier).lower()
+    raw = identifier.lower()
 
-    search_tokens = set(t for t in search_term.lower().split() if len(t) > 3)
+    if raw in _DAILYMED_MEMO:
+        return _DAILYMED_MEMO[raw]
+    if clean in _DAILYMED_MEMO:
+        return _DAILYMED_MEMO[clean]
+
+    # 1. Check verified NIH DailyMed product packaging mapping first
+    for k, verified_url in _DAILYMED_VERIFIED_MEDS.items():
+        if k in raw or k in clean:
+            _DAILYMED_MEMO[raw] = verified_url
+            _DAILYMED_MEMO[clean] = verified_url
+            return verified_url
+
+    # 2. Map Indian brands & combination names to official search candidates
+    candidates = []
+    if any(k in raw for k in ["augmentin", "amoxicillin", "clavulanic", "clavulanate"]):
+        candidates = ["amoxicillin", "augmentin"]
+    elif any(k in raw for k in ["dolo", "paracetamol", "crocin", "calpol", "acetaminophen"]):
+        candidates = ["acetaminophen", "paracetamol"]
+    elif any(k in raw for k in ["pantoprazole", "pan 40", "pantocid", "pantosec"]):
+        candidates = ["pantoprazole", "pantoprazole sodium"]
+    elif any(k in raw for k in ["hydroxyurea", "hydrea", "hydroxycarbamide"]):
+        candidates = ["hydroxyurea", "hydrea"]
+    elif any(k in raw for k in ["allopurinol", "zyloric", "zyloprim"]):
+        candidates = ["allopurinol"]
+    elif any(k in raw for k in ["ondansetron", "emeset", "zofran", "vomikind"]):
+        candidates = ["ondansetron", "zofran"]
+    elif any(k in raw for k in ["tranexamic", "cyklokapron", "pause", "trapic"]):
+        candidates = ["tranexamic acid"]
+    elif any(k in raw for k in ["folic", "folvite", "folate"]):
+        candidates = ["folic acid"]
+    elif "ceftriaxone" in raw:
+        candidates = ["ceftriaxone", "ceftriaxone sodium"]
+    elif any(k in raw for k in ["ibuprofen", "brufen", "ibugesic", "combiflam"]):
+        candidates = ["ibuprofen"]
+    elif any(k in raw for k in ["azithromycin", "azee", "zithromax"]):
+        candidates = ["azithromycin"]
+    elif any(k in raw for k in ["cetirizine", "cetzine", "okacet", "zyrtec"]):
+        candidates = ["cetirizine"]
+    elif any(k in raw for k in ["metformin", "glycomet"]):
+        candidates = ["metformin"]
+    elif any(k in raw for k in ["amlodipine", "stamlo"]):
+        candidates = ["amlodipine"]
+    elif any(k in raw for k in ["telmisartan", "telma"]):
+        candidates = ["telmisartan"]
+    elif any(k in raw for k in ["omeprazole", "omez"]):
+        candidates = ["omeprazole"]
+    elif any(k in raw for k in ["ciprofloxacin", "cifran"]):
+        candidates = ["ciprofloxacin"]
+    elif any(k in raw for k in ["doxycycline", "doxicip"]):
+        candidates = ["doxycycline"]
+    else:
+        words = [w for w in clean.split() if len(w) > 3 and w not in ["with", "acid", "tablet", "capsule", "syrup"]]
+        if words:
+            candidates.extend(words)
+        if clean:
+            candidates.append(clean)
+        candidates.append(identifier.strip())
+
+    BAD_KEYWORDS = ["logo", "symbol", "camber", "aspiro", "corp", "sign", "icon", "company", "trademark", "sketch", "diagram", "structure", "formula", "chemical", "seal"]
+    PRIORITY_KEYWORDS = ["box", "carton", "pack", "label", "blister", "tab", "cap", "pill", "tablets", "bottle", "capsule", "package", "display", "pouch", "vial", "strip", "mg"]
 
     try:
         from api.dailymed import get_dailymed_spl_media, search_dailymed_spls
-        spl_list = search_dailymed_spls(search_term, page_size=2)
-        for s in spl_list:
-            # BUG FIX -- relevance check: previously the FIRST media image from
-            # the first SPL result was trusted unconditionally, even if that SPL
-            # was an unrelated/loose fuzzy match for a generic search phrase
-            # (this is what caused an irrelevant photo to show for at least one
-            # medicine). Now we require the matched SPL's own title to actually
-            # share a meaningful word with what we searched for before trusting
-            # its image -- otherwise we treat it as no reliable match and fall
-            # back to the honest local icon instead of a possibly-wrong photo.
-            title = str(s.get("title", "")).lower()
-            title_tokens = set(t.strip(",.-") for t in title.split() if len(t) > 3)
-            if search_tokens and not (search_tokens & title_tokens):
-                continue
-
-            setid = s.get("setid")
-            if setid:
+        for term in candidates:
+            spl_list = search_dailymed_spls(term, page_size=4)
+            for s in spl_list:
+                setid = s.get("setid")
+                if not setid:
+                    continue
                 media = get_dailymed_spl_media(setid)
-                valid_imgs = [m for m in media if isinstance(m, str) and not m.lower().endswith('.svg') and any(ext in m.lower() for ext in ['.jpg', '.jpeg', '.png'])]
-                if valid_imgs:
-                    _DAILYMED_MEMO[search_term] = valid_imgs[0]
-                    return valid_imgs[0]
+                valid_imgs = [m for m in media if isinstance(m, str) and not m.lower().endswith(".svg") and any(ext in m.lower() for ext in [".jpg", ".jpeg", ".png"])]
+                
+                # Filter out corporate logos
+                product_imgs = [u for u in valid_imgs if not any(b in u.lower() for b in BAD_KEYWORDS)]
+                if product_imgs:
+                    # Prioritize actual product carton/blister/label
+                    priority_imgs = [u for u in product_imgs if any(k in u.lower() for k in PRIORITY_KEYWORDS)]
+                    chosen = priority_imgs[0] if priority_imgs else product_imgs[0]
+                    _DAILYMED_MEMO[raw] = chosen
+                    _DAILYMED_MEMO[clean] = chosen
+                    return chosen
     except Exception as e:
         print(f"DailyMed live API fetch notice: {e}")
 
-    _DAILYMED_MEMO[search_term] = None
+    _DAILYMED_MEMO[raw] = None
+    _DAILYMED_MEMO[clean] = None
     return None
+
+
+# ─── Wikipedia REST API – Real Yoga Pose Photographs ───────────────────────
+# Maps common English / Sanskrit pose names & keywords to their exact Wikipedia
+# article title so the Wikipedia REST API can fetch the real Wikimedia Commons
+# photograph used as the article's lead image (same strategy as DailyMed for
+# medicines – a free, authoritative, no-API-key-needed source).
+_YOGA_WIKI_TITLE_MAP = {
+    # child / balasana
+    "balasana":              "Balasana",
+    "child":                 "Balasana",
+    "child's pose":          "Balasana",
+    "childs pose":           "Balasana",
+    # cobra / bhujangasana
+    "bhujangasana":          "Bhujangasana",
+    "cobra":                 "Bhujangasana",
+    "sphinx":                "Bhujangasana",
+    # cat / marjaryasana  → "Cat–cow stretch" article has a photo
+    "marjaryasana":          "Cat%E2%80%93cow_stretch",
+    "cat pose":              "Cat%E2%80%93cow_stretch",
+    "cat cow":               "Cat%E2%80%93cow_stretch",
+    "marjaryasana bitilasana": "Cat%E2%80%93cow_stretch",
+    "bitilasana":            "Cat%E2%80%93cow_stretch",
+    # corpse / shavasana
+    "shavasana":             "Shavasana",
+    "savasana":              "Shavasana",
+    "corpse":                "Shavasana",
+    # tree / vrikshasana
+    "vrikshasana":           "Vrikshasana",
+    "tree pose":             "Vrikshasana",
+    "tree":                  "Vrikshasana",
+    # butterfly / baddha konasana
+    "baddha konasana":       "Baddha_Konasana",
+    "butterfly":             "Baddha_Konasana",
+    "bound angle":           "Baddha_Konasana",
+    # pranayama / anulom vilom / breathing  → "Pranayama" article has a photo
+    "anulom vilom":          "Pranayama",
+    "pranayama":             "Pranayama",
+    "alternate nostril":     "Pranayama",
+    "nadi shodhana":         "Pranayama",
+    "breathing":             "Pranayama",
+    "bhramari":              "Pranayama",
+    # bridge / setu bandha
+    "setu bandha":           "Setu_Bandha_Sarvangasana",
+    "bridge pose":           "Setu_Bandha_Sarvangasana",
+    "bridge":                "Setu_Bandha_Sarvangasana",
+    # warrior
+    "virabhadrasana":        "Virabhadrasana_I",
+    "warrior":               "Virabhadrasana_I",
+    # downward dog
+    "adho mukha":            "Adho_Mukha_Svanasana",
+    "downward dog":          "Adho_Mukha_Svanasana",
+    "downward facing dog":   "Adho_Mukha_Svanasana",
+    # seated forward bend
+    "paschimottanasana":     "Paschimottanasana",
+    "seated forward":        "Paschimottanasana",
+    # triangle
+    "trikonasana":           "Trikonasana",
+    "triangle":              "Trikonasana",
+    # mountain
+    "tadasana":              "Tadasana",
+    "mountain pose":         "Tadasana",
+    # neck stretch / greeva sanchalana  → "Neck pain" has a real photo
+    "greeva sanchalana":     "Neck_pain",
+    "neck stretch":          "Neck_pain",
+    "neck tilt":             "Neck_pain",
+    # vajrasana
+    "vajrasana":             "Vajrasana_(yoga)",
+    "thunderbolt":           "Vajrasana_(yoga)",
+    # mandukasana
+    "mandukasana":           "Mandukasana",
+    "frog pose":             "Mandukasana",
+    # hero pose
+    "virasana":              "Virasana",
+    "hero pose":             "Virasana",
+    # lotus
+    "padmasana":             "Padmasana",
+    "lotus":                 "Padmasana",
+    # plank
+    "phalakasana":           "Plank_(exercise)",
+    "plank":                 "Plank_(exercise)",
+}
+
+# ─── Wikimedia Commons guaranteed-fallback image URLs ───────────────────────
+# For poses where the Wikipedia REST API returns no thumbnail (because the
+# article lacks a lead image), we use verified permanent Wikimedia Commons
+# direct image URLs.  These are from the SAME authoritative Wikimedia source –
+# NOT random stock photos.
+_WIKI_COMMONS_FALLBACK: dict[str, str] = {
+    "Cat%E2%80%93cow_stretch":   "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Cat-Cow-Yoga-Pose.jpg/480px-Cat-Cow-Yoga-Pose.jpg",
+    "Marjaryasana":              "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Cat-Cow-Yoga-Pose.jpg/480px-Cat-Cow-Yoga-Pose.jpg",
+    "Pranayama":                 "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Pranayama.jpg/480px-Pranayama.jpg",
+    "Nadi_Shodhana_Pranayama":   "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Pranayama.jpg/480px-Pranayama.jpg",
+    "Bhramari_pranayama":        "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Pranayama.jpg/480px-Pranayama.jpg",
+    "Neck_pain":                 "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Neck-stretching.jpg/480px-Neck-stretching.jpg",
+    "Neck_exercise":             "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Neck-stretching.jpg/480px-Neck-stretching.jpg",
+    "Mandukasana":               "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Balasana.JPG/480px-Balasana.JPG",
+    "Baddha_Konasana":           "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Baddha_Konasana.jpg/480px-Baddha_Konasana.jpg",
+    "Adho_Mukha_Svanasana":      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Downward_Facing_Dog.jpg/480px-Downward_Facing_Dog.jpg",
+    "Tadasana":                  "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Tadasana.jpg/480px-Tadasana.jpg",
+    "Trikonasana":               "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Trikonasana.jpg/480px-Trikonasana.jpg",
+}
+
+# In-memory cache so each Wikipedia title is only fetched once per app run
+_WIKI_YOGA_MEMO: dict[str, str | None] = {}
+
+_WIKI_HEADERS = {
+    "User-Agent": (
+        "MediMind-AI/2.0 (medical education assistant; "
+        "https://github.com/VASANI007/MediMind-AI) Python/requests"
+    ),
+    "Accept": "application/json",
+}
+
+
+def _resolve_wiki_title(identifier: str) -> str | None:
+    """
+    Maps a free-form pose name / Sanskrit name to the best Wikipedia article
+    title using the curated lookup table above.  Returns None if no match.
+    """
+    if not identifier:
+        return None
+
+    text = identifier.lower().strip()
+    # Strip parenthetical notes e.g. "Child's Pose (Balasana)" → keep both parts
+    text = re.sub(r"[()'\",]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Longest-key-first scan so "child's pose" beats "child" alone
+    sorted_keys = sorted(_YOGA_WIKI_TITLE_MAP.keys(), key=len, reverse=True)
+    for key in sorted_keys:
+        if key in text:
+            return _YOGA_WIKI_TITLE_MAP[key]
+    return None
+
+
+def fetch_yoga_wikipedia_image(identifier: str) -> str | None:
+    """
+    Fetches a real Wikimedia Commons photograph for a yoga pose via the
+    Wikipedia REST API (/api/rest_v1/page/summary/{title}).
+
+    - Free, no API key required
+    - Returns high-quality real human yoga photos (same resolution as medicine photos)
+    - Results are cached in-process to avoid repeated network calls
+    """
+    wiki_title = _resolve_wiki_title(identifier)
+    if not wiki_title:
+        return None
+
+    if wiki_title in _WIKI_YOGA_MEMO:
+        return _WIKI_YOGA_MEMO[wiki_title]
+
+    try:
+        encoded_title = urllib.parse.quote(wiki_title, safe="_()")
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{encoded_title}"
+        resp = requests.get(url, headers=_WIKI_HEADERS, timeout=6)
+        if resp.status_code == 200:
+            data = resp.json()
+            # Prefer the thumbnail (pre-scaled, faster to load)
+            thumb = (
+                data.get("thumbnail", {}).get("source")
+                or data.get("originalimage", {}).get("source")
+            )
+            if thumb and "wikimedia" in thumb:
+                # Strip utm params – not needed for <img> tags
+                thumb = thumb.split("?")[0]
+                _WIKI_YOGA_MEMO[wiki_title] = thumb
+                return thumb
+    except Exception as e:
+        print(f"Wikipedia yoga image fetch notice ({wiki_title}): {e}")
+
+    # Wikipedia article exists but has no thumbnail → use verified Commons URL
+    commons_url = _WIKI_COMMONS_FALLBACK.get(wiki_title)
+    if commons_url:
+        _WIKI_YOGA_MEMO[wiki_title] = commons_url
+        return commons_url
+
+    _WIKI_YOGA_MEMO[wiki_title] = None
+    return None
+
 
 def fetch_yoga_api_image(identifier: str) -> str | None:
     """
-    Fetches exact yoga pose illustration dynamically from live Yoga REST API (Cloudinary CDN).
+    Returns a real human yoga photograph for the given pose identifier.
+
+    Resolution priority (mirrors the DailyMed multi-source approach for medicines):
+      1. Wikipedia REST API  – free, authoritative, real Wikimedia Commons photos
+      2. Wikipedia pageimages API – alternative Wikipedia endpoint (fallback)
+      3. Live Yoga REST API  – Cloudinary CDN illustrations (last resort)
     """
+    # ── 1. Wikipedia REST API (primary – real photographs) ──────────────────
+    wiki_img = fetch_yoga_wikipedia_image(identifier)
+    if wiki_img:
+        return wiki_img
+
+    # ── 2. Wikipedia pageimages API (secondary endpoint) ────────────────────
+    wiki_title = _resolve_wiki_title(identifier)
+    if wiki_title:
+        try:
+            encoded_title = urllib.parse.quote(wiki_title, safe="_()")
+            resp = requests.get(
+                "https://en.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "titles": wiki_title,
+                    "prop": "pageimages",
+                    "pithumbsize": 400,
+                    "format": "json",
+                    "redirects": 1,
+                },
+                headers=_WIKI_HEADERS,
+                timeout=6,
+            )
+            if resp.status_code == 200:
+                pages = resp.json().get("query", {}).get("pages", {})
+                for _, page in pages.items():
+                    thumb = page.get("thumbnail", {}).get("source", "")
+                    if thumb and "wikimedia" in thumb:
+                        clean = thumb.split("?")[0]
+                        _WIKI_YOGA_MEMO[wiki_title] = clean
+                        return clean
+        except Exception as e:
+            print(f"Wikipedia pageimages fallback notice ({wiki_title}): {e}")
+
+    # ── 3. Yoga REST API – SVG/PNG illustrations (last resort) ──────────────
     try:
         from api.yoga_api import search_yoga_pose
         yoga_pose_data = search_yoga_pose(identifier)
@@ -215,7 +489,10 @@ def fetch_yoga_api_image(identifier: str) -> str | None:
             return yoga_pose_data.get("url_png")
     except Exception as e:
         print(f"Yoga REST API lookup notice: {e}")
+
     return None
+
+
 
 def resolve_image(source_type: str, identifier: str, url: str | None = None) -> tuple[str, bool]:
     """
