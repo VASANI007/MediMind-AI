@@ -792,6 +792,323 @@ div[class*="st-key-p2_quick_q_"] button {
 }
 
 /* ==========================================================================
+   1D. COMPREHENSIVE RESPONSIVE LAYOUT SYSTEM
+   Fluid adaptive grid that fits every screen from phone to 4K monitor.
+   Breakpoints:
+     xs: < 480px  (small phone)
+     sm: 480–767px  (phone landscape / large phone)
+     md: 768–1199px  (tablet / small laptop)
+     lg: 1200–1439px (laptop / standard desktop)
+     xl: ≥ 1440px  (large desktop / widescreen)
+   ========================================================================== */
+
+/* ── BASE: Fluid Container – works inside Streamlit "wide" layout ── */
+.main .block-container,
+section.main > div.block-container,
+[data-testid="stMainBlockContainer"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: clamp(12px, 3vw, 40px) !important;
+    padding-right: clamp(12px, 3vw, 40px) !important;
+    padding-top: clamp(12px, 2vw, 28px) !important;
+    box-sizing: border-box !important;
+}
+
+/* ── Streamlit default app shell: make it truly fill the viewport ── */
+.stApp {
+    min-height: 100vh !important;
+    min-height: 100dvh !important;  /* dynamic viewport height for mobile browsers */
+    overflow-x: hidden !important;
+}
+
+/* ── Prevent any element from breaking outside viewport ── */
+img, iframe, video, table, pre {
+    max-width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* ── Cards: fluid but capped for readability on very wide screens ── */
+.mm-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* ── Plotly / Altair charts always fill their column ── */
+[data-testid="stPlotlyChart"],
+[data-testid="stAltairChart"],
+[data-testid="element-container"] iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* ── Sidebar: consistent, readable width on all screens ── */
+[data-testid="stSidebar"] > div:first-child {
+    width: clamp(220px, 22vw, 280px) !important;
+    min-width: 220px !important;
+    max-width: 280px !important;
+}
+
+/* ── XL (≥ 1440px) – widescreen / large desktop ── */
+@media (min-width: 1440px) {
+    .main .block-container,
+    section.main > div.block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-left: clamp(32px, 4vw, 64px) !important;
+        padding-right: clamp(32px, 4vw, 64px) !important;
+    }
+
+    /* Multi-column hospital/medicine cards: wider tiles on big screens */
+    .mm-hospital-card {
+        min-height: 210px !important;
+        height: 210px !important;
+    }
+
+    /* Top header card gets more breathing room */
+    div[class*="st-key-mm_top_header_card"] {
+        padding: 24px 36px !important;
+        min-height: 100px !important;
+    }
+}
+
+/* ── MD / Tablet (768px – 1199px) ── */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .main .block-container,
+    section.main > div.block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-left: clamp(16px, 3.5vw, 32px) !important;
+        padding-right: clamp(16px, 3.5vw, 32px) !important;
+    }
+
+    /* Sidebar narrower on tablets to leave more main content space */
+    [data-testid="stSidebar"] > div:first-child {
+        width: clamp(200px, 28vw, 250px) !important;
+        min-width: 200px !important;
+        max-width: 250px !important;
+    }
+
+    /* Sidebar nav text can be slightly smaller */
+    [data-testid="stSidebar"] div[role="radiogroup"] label,
+    [data-testid="stSidebar"] div[role="radiogroup"] label p,
+    [data-testid="stSidebar"] div[role="radiogroup"] label span {
+        font-size: 0.82rem !important;
+        padding: 8px 12px !important;
+    }
+
+    /* 3-column grids become 2-column on tablet */
+    [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 14px !important;
+        width: 100% !important;
+    }
+    [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) > [data-testid="column"],
+    [data-testid="stHorizontalBlock"]:has([data-testid="stVerticalBlockBorderWrapper"]) > [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 14px) !important;
+        min-width: 240px !important;
+        max-width: calc(50% - 7px) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Hospital cards: 2 per row on tablets */
+    .mm-hospital-card {
+        min-height: 195px !important;
+        height: 195px !important;
+    }
+
+    /* Plotly charts: slightly taller on tablet */
+    [data-testid="stPlotlyChart"] > div {
+        min-height: 280px !important;
+    }
+
+    /* Top header card: compact on tablet */
+    div[class*="st-key-mm_top_header_card"] {
+        padding: 16px 22px !important;
+        min-height: 80px !important;
+    }
+
+    /* Button groups: wrap neatly on tablet */
+    [data-testid="stHorizontalBlock"]:has(.stButton) {
+        gap: 8px !important;
+    }
+
+    /* Form fields slightly compact */
+    .stTextInput label,
+    .stSelectbox label,
+    .stMultiSelect label,
+    .stRadio label,
+    .stSlider label,
+    .stFileUploader label,
+    div[data-testid="stWidgetLabel"] label,
+    div[data-testid="stWidgetLabel"] p {
+        font-size: 0.82rem !important;
+    }
+
+    .stTextInput input,
+    [data-baseweb="select"] > div {
+        font-size: 0.88rem !important;
+    }
+
+    /* Tabs navigation: smaller text on tablet */
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.83rem !important;
+        padding: 8px 14px !important;
+    }
+
+    /* Modal dialogs: full-width feel on tablets */
+    div[data-testid="stDialog"] > div[role="dialog"],
+    div[role="dialog"] {
+        width: min(860px, 96vw) !important;
+        max-width: 96vw !important;
+        padding: 20px 22px !important;
+    }
+
+    /* Floating chat slightly smaller on tablet */
+    .floating-chat-container {
+        width: min(420px, 90vw) !important;
+        right: 16px !important;
+        bottom: 16px !important;
+    }
+}
+
+/* ── SM / Large Phone / Landscape (480px – 767px) ── */
+@media (min-width: 480px) and (max-width: 767px) {
+    .main .block-container,
+    section.main > div.block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        padding-top: 12px !important;
+        padding-bottom: 80px !important;
+    }
+
+    /* 2 hospital cards side by side in landscape phone */
+    [data-testid="stHorizontalBlock"]:has(.mm-hospital-card) {
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.mm-hospital-card) > [data-testid="column"],
+    [data-testid="stHorizontalBlock"]:has(.mm-hospital-card) > [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 12px) !important;
+        min-width: 200px !important;
+    }
+
+    /* Sidebar nav text: minimal */
+    [data-testid="stSidebar"] div[role="radiogroup"] label,
+    [data-testid="stSidebar"] div[role="radiogroup"] label p {
+        font-size: 0.80rem !important;
+        padding: 8px 10px !important;
+        min-height: 40px !important;
+    }
+
+    /* Floating chat: full bottom sheet feel */
+    .floating-chat-container {
+        width: min(380px, 96vw) !important;
+        right: 10px !important;
+        bottom: 10px !important;
+    }
+}
+
+/* ── XS / Small Phone (< 480px) ── */
+@media (max-width: 479px) {
+    .main .block-container,
+    section.main > div.block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-top: 10px !important;
+        padding-bottom: 80px !important;
+    }
+
+    /* All horizontal blocks become full-width vertical stacks */
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="column"],
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Chip rows still wrap inline */
+    [data-testid="stHorizontalBlock"]:has(div[class*="st-key-chip_"]),
+    [data-testid="stHorizontalBlock"]:has(div[class*="st-key-pop_sym_chip_"]),
+    [data-testid="stHorizontalBlock"]:has(div[class*="st-key-p2_quick_q_"]) {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(div[class*="st-key-chip_"]) > [data-testid="column"],
+    [data-testid="stHorizontalBlock"]:has(div[class*="st-key-pop_sym_chip_"]) > [data-testid="column"],
+    [data-testid="stHorizontalBlock"]:has(div[class*="st-key-p2_quick_q_"]) > [data-testid="column"] {
+        flex: 0 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    /* Sidebar: auto-collapse hint (CSS only, full collapse is JS) */
+    [data-testid="stSidebar"] > div:first-child {
+        min-width: 200px !important;
+        max-width: 240px !important;
+    }
+
+    /* Top header card: stacked on very small screens */
+    div[class*="st-key-mm_top_header_card"] {
+        padding: 12px 14px !important;
+        min-height: 70px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    /* Hospital cards: single column on small phones */
+    .mm-hospital-card {
+        min-height: 175px !important;
+        height: auto !important;
+        padding: 12px 14px !important;
+    }
+
+    /* Tab labels: shorter on tiny screens */
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.74rem !important;
+        padding: 6px 10px !important;
+    }
+
+    /* Modal: full width on tiny phone */
+    div[data-testid="stDialog"] > div[role="dialog"],
+    div[role="dialog"] {
+        width: 98vw !important;
+        max-width: 98vw !important;
+        padding: 16px 14px !important;
+        border-radius: 14px !important;
+    }
+
+    /* Floating chat: full-width bottom panel on tiny screen */
+    .floating-chat-container {
+        width: 96vw !important;
+        right: 2vw !important;
+        bottom: 8px !important;
+    }
+}
+
+/* ── Utility: smooth viewport transitions for resizing ── */
+.stApp,
+.main .block-container,
+[data-testid="stSidebar"],
+[data-testid="stHorizontalBlock"],
+.mm-card,
+.mm-hospital-card {
+    transition: padding 0.25s ease, width 0.25s ease !important;
+}
+
+/* ==========================================================================
    2. SIDEBAR - TOGGLE BUTTONS & NAVIGATION PANEL
    ========================================================================== */
 
