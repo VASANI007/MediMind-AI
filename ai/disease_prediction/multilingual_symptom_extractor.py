@@ -224,9 +224,27 @@ Respond strictly in valid JSON format:
 Translate display names to {lang_label}. Ensure high clinical precision.
 """
 
-        # 1. Try Groq API
+        # 1. Primary: Google Gemini Generative AI (3.5 Flash Lite / 3.6 Flash)
+        if GEMINI_API_KEY:
+            for gem_model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash"]:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{gem_model}:generateContent?key={GEMINI_API_KEY}"
+                    gem_body = {
+                        "contents": [{"parts": [{"text": prompt}]}],
+                        "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"}
+                    }
+                    res_g = requests.post(url, json=gem_body, timeout=8)
+                    if res_g.status_code == 200:
+                        raw_text = res_g.json()["candidates"][0]["content"]["parts"][0]["text"]
+                        parsed = _safe_parse_json(raw_text)
+                        if parsed and (parsed.get("symptoms") or parsed.get("detected_disease")):
+                            return self._format_llm_result(parsed, user_lang)
+                except Exception as e:
+                    pass
+
+        # 2. Secondary: Groq LLM Fallback
         if GROQ_API_KEY:
-            for groq_model in ["qwen/qwen3.6-27b", "openai/gpt-oss-20b"]:
+            for groq_model in ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"]:
                 try:
                     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
                     body = {
@@ -238,24 +256,6 @@ Translate display names to {lang_label}. Ensure high clinical precision.
                     if res.status_code == 200:
                         content = res.json()["choices"][0]["message"]["content"]
                         parsed = _safe_parse_json(content)
-                        if parsed and (parsed.get("symptoms") or parsed.get("detected_disease")):
-                            return self._format_llm_result(parsed, user_lang)
-                except Exception as e:
-                    pass
-
-        # 2. Try Gemini REST API
-        if GEMINI_API_KEY:
-            for gem_model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
-                try:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{gem_model}:generateContent?key={GEMINI_API_KEY}"
-                    gem_body = {
-                        "contents": [{"parts": [{"text": prompt}]}],
-                        "generationConfig": {"temperature": 0.1}
-                    }
-                    res_g = requests.post(url, json=gem_body, timeout=6)
-                    if res_g.status_code == 200:
-                        raw_text = res_g.json()["candidates"][0]["content"]["parts"][0]["text"]
-                        parsed = _safe_parse_json(raw_text)
                         if parsed and (parsed.get("symptoms") or parsed.get("detected_disease")):
                             return self._format_llm_result(parsed, user_lang)
                 except Exception as e:
