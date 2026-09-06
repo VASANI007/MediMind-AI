@@ -112,16 +112,17 @@ Translate condition names and guidance to {lang_label}.
 """
         # Try Gemini
         if GEMINI_API_KEY:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
-                res = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.1}}, timeout=6)
-                if res.status_code == 200:
-                    raw_text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-                    match = re.search(r"\{.*\}", raw_text, re.DOTALL)
-                    if match:
-                        return json.loads(match.group(0))
-            except Exception:
-                pass
+            for model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+                    res = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json"}}, timeout=10)
+                    if res.status_code == 200:
+                        raw_text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+                        match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+                        if match:
+                            return json.loads(match.group(0))
+                except Exception:
+                    pass
 
         # Try Groq
         if GROQ_API_KEY:
