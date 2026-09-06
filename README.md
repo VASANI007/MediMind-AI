@@ -409,18 +409,37 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+
 ### 5. Configure Environment Variables
 Create a `.env` file in the root directory and add your API keys:
 ```env
-# Google Gemini API Key (Required for Multimodal Vision, Chatbot & NLP)
+# ==========================================
+# ⚡ MediMind AI Environment Configuration
+# ==========================================
+
+# 1. Google Gemini API Key (Required: Multimodal Vision OCR, Symptom NLP & Clinical Explainer)
 GEMINI_API_KEY="your_gemini_api_key_here"
 
-# Groq API Key (High-speed fallback for Conversational Copilot)
+# 2. Groq Cloud API Key (Required: High-speed fallback for Conversational Copilot & Llama-3.3-70B)
 GROQ_API_KEY="your_groq_api_key_here"
 
-# Google Maps Platform API Key (Optional: for live distance matrix routing)
+# 3. OpenFDA API Key (Required: US FDA Drug Labeling, Interactions, Contraindications & Adverse Events)
+OPENFDA_API_KEY="your_openfda_api_key_here"
+
+# 4. World Health Organization (WHO) ICD-11 API Credentials (Required: Global Disease Ontology & Codes)
+WHO_ICD_CLIENT_ID="your_who_icd_client_id_here"
+WHO_ICD_CLIENT_SECRET="your_who_icd_client_secret_here"
+
+# 5. NCBO BioPortal API Key (Required: SNOMED-CT, LOINC, MeSH, RxNorm & MedDRA Ontology Lookup)
+BIOPORTAL_API_KEY="your_bioportal_api_key_here"
+
+# 6. Google Maps Platform API Key (Required: Places Geocoding, Nearby Hospital Radar & Route Matrix)
 GOOGLE_MAPS_API_KEY="your_google_maps_key_here"
+
+# 7. Open Government Data (OGD) India API Key (Required: Public Health Infrastructure & Facility Telemetry)
+DATA_GOV_IN_API_KEY="your_data_gov_in_api_key_here"
 ```
+
 
 ### 6. Run the MediMind AI Platform
 ```bash
