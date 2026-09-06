@@ -210,7 +210,7 @@ STRICT MEDICAL & MEDIMIND SCOPE POLICY:
 
     # 2. Try Gemini API
     if GEMINI_API_KEY:
-        for gem_model in ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest"]:
+        for gem_model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{gem_model}:generateContent?key={GEMINI_API_KEY}"
                 prompt_full = f"{system_prompt}\n\nUser Question: {user_message}"
@@ -218,7 +218,7 @@ STRICT MEDICAL & MEDIMIND SCOPE POLICY:
                     "contents": [{"parts": [{"text": prompt_full}]}],
                     "generationConfig": {"temperature": 0.4, "maxOutputTokens": 600}
                 }
-                res_g = requests.post(url, json=gemini_body, timeout=8)
+                res_g = requests.post(url, json=gemini_body, timeout=10)
                 if res_g.status_code == 200:
                     candidates = res_g.json().get("candidates", [])
                     if candidates:
