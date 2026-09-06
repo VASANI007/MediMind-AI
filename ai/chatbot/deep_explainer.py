@@ -233,7 +233,6 @@ def generate_medical_report_comprehensive_breakdown(
     """
     lang_name = "English" if lang == "en" else "Hindi (हिंदी)" if lang == "hi" else "Gujarati (ગુજરાતી)"
     findings = findings or []
-
     # Summarize findings for prompt
     findings_lines = []
     for f in findings[:15]:
