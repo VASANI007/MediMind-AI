@@ -56,9 +56,20 @@ def render_command_center_dashboard(lang_code: str = "en", is_dark: bool = False
         font-size: 0.74rem !important;
         margin-top: 4px !important;
     }
+    div[data-testid="stButton"] button {
+        height: 44px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: 700 !important;
+        font-size: 0.86rem !important;
+        border-radius: 8px !important;
+        line-height: 1 !important;
+    }
     .manifest-action-btn {
-        height: 42px !important;
-        min-height: 42px !important;
+        height: 44px !important;
+        min-height: 44px !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -84,16 +95,18 @@ def render_command_center_dashboard(lang_code: str = "en", is_dark: bool = False
         border-color: #8E1C15 !important;
         color: #8E1C15 !important;
     }
-    div[data-testid="stButton"] button {
-        height: 42px !important;
-        min-height: 42px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-weight: 700 !important;
-        font-size: 0.86rem !important;
-        border-radius: 8px !important;
-        line-height: 1 !important;
+    @media (max-width: 767px) {
+        div[data-testid="stMetric"] {
+            padding: 12px 14px !important;
+            min-height: 96px !important;
+        }
+        div[data-testid="stMetric"] > div[data-testid="stMetricValue"] {
+            font-size: 1.15rem !important;
+        }
+        .manifest-action-btn,
+        div[data-testid="stButton"] button {
+            margin-bottom: 8px !important;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -463,7 +476,7 @@ def render_command_center_dashboard(lang_code: str = "en", is_dark: bool = False
                 st.success(f"Transfer Manifest Recommended: `{active_manifest['manifest_id']}` — Consignment of {active_manifest['transfer_quantity']} {active_manifest['unit']} ({active_manifest['medicine_name']}) generated for administrative review.")
 
                 st.markdown(f"""
-                <div style="background: var(--mm-card-bg, #FFFFFF); border: 1.5px solid #10B981; border-radius: 12px; padding: 20px 24px; box-shadow: 0 4px 18px rgba(16,185,129,0.12); margin-bottom: 16px;">
+                <div style="background: var(--mm-card-bg, #FFFFFF); border: 1.5px solid #10B981; border-radius: 12px; padding: clamp(14px, 4vw, 24px); box-sizing: border-box; box-shadow: 0 4px 18px rgba(16,185,129,0.12); margin-bottom: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
                         <div>
                             <span style="font-size: 0.76rem; font-weight: 700; color: #10B981; letter-spacing: 0.5px; text-transform: uppercase;">GOVERNMENT OF INDIA • NATIONAL HEALTH AUTHORITY</span>
@@ -474,7 +487,7 @@ def render_command_center_dashboard(lang_code: str = "en", is_dark: bool = False
                             <div style="font-size: 0.72rem; color: var(--mm-text-secondary); margin-top: 4px;">Generated: {active_manifest['generated_at']}</div>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; margin-bottom: 16px;">
                         <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--mm-border, #E2E8F0); border-radius: 8px; padding: 12px;">
                             <span style="font-size: 0.72rem; font-weight: 700; color: var(--mm-text-secondary); text-transform: uppercase;">Consignment Medicine</span>
                             <div style="font-size: 0.98rem; font-weight: 800; color: var(--mm-text-primary); margin-top: 2px;">{active_manifest['medicine_name']}</div>
@@ -496,7 +509,7 @@ def render_command_center_dashboard(lang_code: str = "en", is_dark: bool = False
                             <div style="font-size: 0.74rem; color: #10B981;">HMIS Constrained Solver</div>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px; margin-bottom: 16px;">
                         <div style="background: rgba(59, 130, 246, 0.05); border-left: 3.5px solid #3B82F6; border-radius: 8px; padding: 12px 14px;">
                             <b style="font-size: 0.82rem; color: #3B82F6;">Source Facility (Surplus Donor)</b>
                             <div style="font-size: 0.90rem; font-weight: 700; color: var(--mm-text-primary); margin-top: 3px;">{active_manifest['donor_name']} ({active_manifest.get('donor_facility_type', 'Warehouse')})</div>
