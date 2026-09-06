@@ -81,7 +81,7 @@ Write in a reassuring, professional, and clear tone in {lang_name}."""
 
     # 2. Gemini AI
     if GEMINI_API_KEY:
-        for model in ["gemini-2.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest", "gemini-2.5-pro"]:
+        for model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
                 payload = {
@@ -89,7 +89,7 @@ Write in a reassuring, professional, and clear tone in {lang_name}."""
                     "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2048}
                 }
                 headers = {"Content-Type": "application/json"}
-                res = requests.post(url, json=payload, headers=headers, timeout=8)
+                res = requests.post(url, json=payload, headers=headers, timeout=10)
                 if res.status_code == 200:
                     candidates = res.json().get("candidates", [])
                     if candidates:
@@ -175,14 +175,14 @@ INSTRUCTIONS:
 4. Conclude with a warm safety reminder."""
 
     if GEMINI_API_KEY:
-        for model in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-3.7-flash", "gemini-flash-latest"]:
+        for model in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
                 payload = {
                     "contents": [{"parts": [{"text": prompt}]}],
                     "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1024}
                 }
-                res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=8)
+                res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=10)
                 if res.status_code == 200:
                     candidates = res.json().get("candidates", [])
                     if candidates:
